@@ -1,0 +1,512 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Potatoo — الطلبات</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --gold-1: #FFCC44; --gold-2: #E08A00;
+      --bg: #0E0E0E; --card: #1A1A1A; --item: #222222;
+      --border: #2E2E2E; --text: #FFFFFF; --sub: rgba(255,255,255,0.5);
+      --gold-grad: linear-gradient(180deg,#FFCC44,#E08A00);
+      --red: #FF3B30; --green: #30D158; --orange: #FF9500; --blue: #0A84FF;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'Cairo',sans-serif; min-height:100vh; }
+
+    /* ===== TOPBAR ===== */
+    #topbar {
+      position: sticky; top:0; z-index:50;
+      background: rgba(14,14,14,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      height: 60px; display:flex; align-items:center; gap:12px;
+    }
+    .logo-sm {
+      width:36px; height:36px; border-radius:10px;
+      background:var(--gold-grad);
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; flex-shrink:0;
+    }
+    .topbar-title {
+      font-size:18px; font-weight:900; flex:1;
+      background:var(--gold-grad);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .logout-btn {
+      padding:6px 14px; border-radius:10px; border:1px solid var(--border);
+      background:transparent; color:var(--sub);
+      font-family:'Cairo',sans-serif; font-size:13px; font-weight:700;
+      cursor:pointer; transition:all 0.2s;
+    }
+    .logout-btn:hover { border-color:var(--red); color:var(--red); }
+
+    /* ===== FILTERS ===== */
+    #filters {
+      padding: 16px 20px 8px;
+      display:flex; gap:8px; overflow-x:auto; scrollbar-width:none;
+    }
+    #filters::-webkit-scrollbar { display:none; }
+    .filter-btn {
+      flex-shrink:0; padding:7px 18px; border-radius:20px; border:none;
+      font-family:'Cairo',sans-serif; font-size:13px; font-weight:900;
+      cursor:pointer; transition:all 0.2s;
+      background:var(--item); color:var(--sub); white-space:nowrap;
+    }
+    .filter-btn.active { background:var(--gold-grad); color:#000; }
+
+    /* ===== REFRESH ===== */
+    #refresh-bar {
+      padding: 0 20px 12px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .orders-count { font-size:13px; color:var(--sub); font-weight:700; }
+    .refresh-btn {
+      padding:6px 14px; border-radius:10px; border:1px solid var(--border);
+      background:transparent; color:var(--sub);
+      font-family:'Cairo',sans-serif; font-size:12px; font-weight:700;
+      cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.2s;
+    }
+    .refresh-btn:hover { border-color:var(--gold-1); color:var(--gold-1); }
+    .refresh-btn.spinning .ref-icon { animation:spin 0.7s linear infinite; display:inline-block; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ===== LOADER ===== */
+    #loader {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-height:60vh; gap:16px;
+    }
+    .ld-spinner {
+      width:40px; height:40px; border:3px solid var(--border);
+      border-top-color:var(--gold-1); border-radius:50%; animation:spin 0.8s linear infinite;
+    }
+    .ld-text { font-size:14px; color:var(--sub); font-weight:700; }
+
+    /* ===== EMPTY ===== */
+    #empty-state {
+      display:none; flex-direction:column; align-items:center;
+      justify-content:center; min-height:50vh; gap:12px; text-align:center; padding:32px;
+    }
+    .empty-icon { font-size:56px; }
+    .empty-title { font-size:18px; font-weight:900; }
+    .empty-sub { font-size:14px; color:var(--sub); }
+
+    /* ===== ORDERS GRID ===== */
+    #orders-grid { padding: 0 16px 100px; display:flex; flex-direction:column; gap:12px; }
+
+    /* ===== ORDER CARD ===== */
+    .order-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:20px; overflow:hidden;
+      box-shadow:0 4px 20px rgba(0,0,0,0.4);
+      animation: cardIn 0.3s ease both;
+    }
+    @keyframes cardIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+    .order-card.status-new      { border-top:3px solid var(--blue); }
+    .order-card.status-in_progress { border-top:3px solid var(--orange); }
+    .order-card.status-done     { border-top:3px solid var(--green); }
+    .order-card.status-cancelled{ border-top:3px solid var(--red); }
+
+    .card-header {
+      padding:14px 16px 10px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .status-dot {
+      width:10px; height:10px; border-radius:50%; flex-shrink:0;
+    }
+    .status-new .status-dot       { background:var(--blue); box-shadow:0 0 8px var(--blue); }
+    .status-in_progress .status-dot { background:var(--orange); box-shadow:0 0 8px var(--orange); }
+    .status-done .status-dot      { background:var(--green); }
+    .status-cancelled .status-dot { background:var(--red); }
+
+    .order-num { font-size:13px; font-weight:900; color:var(--sub); flex:1; }
+    .order-time { font-size:11px; color:var(--sub); }
+    .branch-tag {
+      font-size:11px; font-weight:700; padding:3px 10px;
+      border-radius:20px; background:rgba(255,204,68,0.1);
+      color:var(--gold-1); border:1px solid rgba(255,204,68,0.2);
+    }
+
+    .card-customer {
+      padding:0 16px 12px;
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .cust-row { display:flex; align-items:center; gap:8px; font-size:13px; }
+    .cust-icon { font-size:14px; flex-shrink:0; }
+    .cust-val { font-weight:700; }
+    .cust-phone { color:var(--gold-1); text-decoration:none; font-weight:900; }
+
+    .card-divider { height:1px; background:var(--border); margin:0 16px; }
+
+    .card-items { padding:12px 16px; }
+    .card-items-title { font-size:11px; color:var(--sub); font-weight:700; margin-bottom:8px; }
+    .item-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:5px 0; font-size:13px;
+    }
+    .item-name-wrap { display:flex; align-items:center; gap:6px; }
+    .item-qty {
+      width:22px; height:22px; border-radius:6px;
+      background:var(--gold-grad); color:#000;
+      font-size:11px; font-weight:900;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .item-size { color:var(--sub); font-size:12px; }
+    .item-price {
+      font-size:12px; font-weight:900;
+      background:var(--gold-grad);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+
+    .card-total {
+      padding:8px 16px 12px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .total-label { font-size:13px; color:var(--sub); font-weight:700; }
+    .total-val {
+      font-size:16px; font-weight:900;
+      background:var(--gold-grad);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+
+    /* ===== STATUS BUTTONS ===== */
+    .card-actions { padding:12px 16px 16px; display:flex; gap:8px; flex-wrap:wrap; }
+    .status-action-btn {
+      flex:1; min-width:80px; height:36px; border-radius:12px; border:none;
+      font-family:'Cairo',sans-serif; font-size:12px; font-weight:900;
+      cursor:pointer; transition:all 0.2s; opacity:0.5;
+    }
+    .status-action-btn.active-btn { opacity:1; }
+    .status-action-btn.btn-new         { background:rgba(10,132,255,0.15); color:var(--blue); border:1px solid rgba(10,132,255,0.3); }
+    .status-action-btn.btn-in_progress { background:rgba(255,149,0,0.15); color:var(--orange); border:1px solid rgba(255,149,0,0.3); }
+    .status-action-btn.btn-done        { background:rgba(48,209,88,0.15); color:var(--green); border:1px solid rgba(48,209,88,0.3); }
+    .status-action-btn.btn-cancelled   { background:rgba(255,59,48,0.15); color:var(--red); border:1px solid rgba(255,59,48,0.3); }
+    .status-action-btn.active-btn.btn-new         { background:rgba(10,132,255,0.3); }
+    .status-action-btn.active-btn.btn-in_progress { background:rgba(255,149,0,0.3); }
+    .status-action-btn.active-btn.btn-done        { background:rgba(48,209,88,0.3); }
+    .status-action-btn.active-btn.btn-cancelled   { background:rgba(255,59,48,0.3); }
+
+    .delete-btn {
+      width:36px; height:36px; border-radius:12px; border:1px solid rgba(255,59,48,0.3);
+      background:rgba(255,59,48,0.1); color:var(--red);
+      font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; transition:all 0.2s;
+    }
+    .delete-btn:hover { background:rgba(255,59,48,0.25); }
+
+    /* ===== AUTO REFRESH INDICATOR ===== */
+    #auto-badge {
+      position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+      background:rgba(30,30,30,0.95); border:1px solid var(--border);
+      border-radius:20px; padding:8px 16px;
+      font-size:12px; font-weight:700; color:var(--sub);
+      display:flex; align-items:center; gap:8px;
+      backdrop-filter:blur(8px); z-index:100;
+    }
+    .pulse-dot {
+      width:8px; height:8px; border-radius:50%; background:var(--green);
+      animation:pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="logo-sm">🥔</div>
+  <div class="topbar-title">الطلبات</div>
+  <button class="logout-btn" onclick="doLogout()">خروج</button>
+</div>
+
+<!-- FILTERS -->
+<div id="filters">
+  <button class="filter-btn active" data-status="" onclick="setFilter(this,'')">الكل</button>
+  <button class="filter-btn" data-status="new" onclick="setFilter(this,'new')">🔵 جديد</button>
+  <button class="filter-btn" data-status="in_progress" onclick="setFilter(this,'in_progress')">🟠 جاري</button>
+  <button class="filter-btn" data-status="done" onclick="setFilter(this,'done')">🟢 تم</button>
+  <button class="filter-btn" data-status="cancelled" onclick="setFilter(this,'cancelled')">🔴 ملغي</button>
+</div>
+
+<!-- REFRESH BAR -->
+<div id="refresh-bar">
+  <span class="orders-count" id="orders-count">جاري التحميل...</span>
+  <button class="refresh-btn" id="refresh-btn" onclick="loadOrders()">
+    <span class="ref-icon">↻</span> تحديث
+  </button>
+</div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="ld-spinner"></div>
+  <div class="ld-text">جاري تحميل الطلبات...</div>
+</div>
+
+<!-- EMPTY -->
+<div id="empty-state">
+  <div class="empty-icon">📋</div>
+  <div class="empty-title">لا يوجد طلبات</div>
+  <div class="empty-sub">الطلبات الجديدة هتظهر هنا</div>
+</div>
+
+<!-- ORDERS -->
+<div id="orders-grid"></div>
+
+<!-- AUTO REFRESH BADGE -->
+<div id="auto-badge">
+  <div class="pulse-dot"></div>
+  <span id="auto-text">تحديث تلقائي كل 30 ثانية</span>
+</div>
+
+<script>
+const API   = 'https://potatoo-eight.vercel.app/api'
+const token = localStorage.getItem('pt_token')
+
+// لو مش مسجل دخول → روح للوجن
+if (!token) window.location.replace('./login.html')
+
+let currentFilter = ''
+let allOrders     = []
+let autoTimer     = null
+let countdown     = 30
+
+const STATUS_LABELS = {
+  new:         '🔵 جديد',
+  in_progress: '🟠 جاري',
+  done:        '🟢 تم',
+  cancelled:   '🔴 ملغي',
+}
+
+// ============================================================
+// LOAD ORDERS
+// ============================================================
+async function loadOrders() {
+  const btn = document.getElementById('refresh-btn')
+  btn.classList.add('spinning')
+  countdown = 30
+
+  try {
+    const url = currentFilter
+      ? `${API}/orders?status=${currentFilter}`
+      : `${API}/orders`
+
+    const res  = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+
+    if (res.status === 401) { doLogout(); return; }
+
+    const json = await res.json()
+    if (!json.success) throw new Error()
+
+    allOrders = json.data || []
+    renderOrders(allOrders)
+  } catch (e) {
+    document.getElementById('orders-count').textContent = 'فشل التحميل'
+  } finally {
+    btn.classList.remove('spinning')
+    document.getElementById('loader').style.display = 'none'
+  }
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderOrders(orders) {
+  const grid  = document.getElementById('orders-grid')
+  const empty = document.getElementById('empty-state')
+  const count = document.getElementById('orders-count')
+
+  count.textContent = `${orders.length} طلب`
+
+  if (orders.length === 0) {
+    grid.innerHTML = ''
+    empty.style.display = 'flex'
+    return
+  }
+  empty.style.display = 'none'
+  grid.innerHTML = orders.map(o => buildCard(o)).join('')
+}
+
+function buildCard(o) {
+  const branchName = o.branch?.arabicName || o.branch?.englishName || '—'
+  const time       = formatTime(o.createdAt)
+  const shortId    = o._id.slice(-6).toUpperCase()
+
+  const itemsHtml = (o.items || []).map(item => {
+    const price = item.price > 0 ? `${item.price * item.qty} ج` : '—'
+    return `<div class="item-row">
+      <div class="item-name-wrap">
+        <span class="item-qty">${item.qty}</span>
+        <span>${item.nameAr}</span>
+        <span class="item-size">(${item.sizeKey})</span>
+      </div>
+      <span class="item-price">${price}</span>
+    </div>`
+  }).join('')
+
+  const total = (o.items || []).reduce((s, i) => s + (i.price || 0) * i.qty, 0)
+  const totalHtml = total > 0
+    ? `<div class="card-total">
+        <span class="total-label">الإجمالي</span>
+        <span class="total-val">${total} ج</span>
+       </div>`
+    : ''
+
+  const actionBtns = ['new','in_progress','done','cancelled'].map(st => {
+    const isActive = o.status === st
+    return `<button
+      class="status-action-btn btn-${st} ${isActive ? 'active-btn' : ''}"
+      onclick="changeStatus('${o._id}','${st}',this)"
+      ${isActive ? 'disabled' : ''}>
+      ${STATUS_LABELS[st]}
+    </button>`
+  }).join('')
+
+  return `<div class="order-card status-${o.status}" id="card-${o._id}">
+    <div class="card-header">
+      <div class="status-dot"></div>
+      <div class="order-num">#${shortId}</div>
+      <div class="branch-tag">${branchName}</div>
+      <div class="order-time">${time}</div>
+    </div>
+    <div class="card-customer">
+      <div class="cust-row"><span class="cust-icon">👤</span><span class="cust-val">${o.customerName}</span></div>
+      <div class="cust-row"><span class="cust-icon">📍</span><span class="cust-val">${o.customerAddress}</span></div>
+      <div class="cust-row"><span class="cust-icon">📞</span>
+        <a class="cust-phone" href="tel:${o.customerPhone}">${o.customerPhone}</a>
+      </div>
+    </div>
+    <div class="card-divider"></div>
+    <div class="card-items">
+      <div class="card-items-title">الطلبات</div>
+      ${itemsHtml}
+    </div>
+    ${totalHtml}
+    <div class="card-divider"></div>
+    <div class="card-actions">
+      ${actionBtns}
+      <button class="delete-btn" onclick="deleteOrder('${o._id}')">🗑</button>
+    </div>
+  </div>`
+}
+
+// ============================================================
+// CHANGE STATUS
+// ============================================================
+async function changeStatus(orderId, status, btn) {
+  const card = document.getElementById('card-' + orderId)
+  if (!card) return
+
+  // تحديث فوري في UI
+  card.className = `order-card status-${status}`
+  card.querySelectorAll('.status-action-btn').forEach(b => {
+    const isCurrent = b.classList.contains('btn-' + status)
+    b.classList.toggle('active-btn', isCurrent)
+    b.disabled = isCurrent
+  })
+
+  try {
+    const res = await fetch(`${API}/orders/${orderId}/status`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+    const json = await res.json()
+    if (!json.success) throw new Error()
+
+    // تحديث في الـ allOrders
+    const idx = allOrders.findIndex(o => o._id === orderId)
+    if (idx !== -1) allOrders[idx].status = status
+  } catch (e) {
+    // rollback
+    loadOrders()
+  }
+}
+
+// ============================================================
+// DELETE ORDER
+// ============================================================
+async function deleteOrder(orderId) {
+  if (!confirm('هل تريد حذف هذا الطلب؟')) return
+
+  const card = document.getElementById('card-' + orderId)
+  if (card) card.style.opacity = '0.4'
+
+  try {
+    const res = await fetch(`${API}/orders/${orderId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const json = await res.json()
+    if (!json.success) throw new Error()
+
+    allOrders = allOrders.filter(o => o._id !== orderId)
+    renderOrders(allOrders)
+  } catch (e) {
+    if (card) card.style.opacity = '1'
+    alert('فشل الحذف، حاول مرة أخرى')
+  }
+}
+
+// ============================================================
+// FILTER
+// ============================================================
+function setFilter(el, status) {
+  currentFilter = status
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
+  el.classList.add('active')
+  document.getElementById('loader').style.display = 'flex'
+  loadOrders()
+}
+
+// ============================================================
+// AUTO REFRESH (كل 30 ثانية)
+// ============================================================
+function startAutoRefresh() {
+  clearInterval(autoTimer)
+  countdown = 30
+  autoTimer = setInterval(() => {
+    countdown--
+    document.getElementById('auto-text').textContent = `تحديث تلقائي خلال ${countdown}ث`
+    if (countdown <= 0) {
+      loadOrders()
+      countdown = 30
+    }
+  }, 1000)
+}
+
+// ============================================================
+// LOGOUT
+// ============================================================
+function doLogout() {
+  localStorage.removeItem('pt_token')
+  localStorage.removeItem('pt_user')
+  window.location.replace('./login.html')
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function formatTime(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const now = new Date()
+  const diff = Math.floor((now - d) / 60000)
+  if (diff < 1)  return 'الآن'
+  if (diff < 60) return `منذ ${diff} دقيقة`
+  if (diff < 1440) return `منذ ${Math.floor(diff/60)} ساعة`
+  return d.toLocaleDateString('ar-EG')
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadOrders()
+startAutoRefresh()
+</script>
+</body>
+</html>
