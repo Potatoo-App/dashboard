@@ -227,10 +227,10 @@
 <!-- FILTERS -->
 <div id="filters">
   <button class="filter-btn active" data-status="" onclick="setFilter(this,'')">الكل</button>
-  <button class="filter-btn" data-status="new" onclick="setFilter(this,'new')">✳ جديد</button>
-  <button class="filter-btn" data-status="in_progress" onclick="setFilter(this,'in_progress')">⏳ جاري</button>
-  <button class="filter-btn" data-status="done" onclick="setFilter(this,'done')">✔ تم </button>
-  <button class="filter-btn" data-status="cancelled" onclick="setFilter(this,'cancelled')">✖ ملغي</button>
+  <button class="filter-btn" data-status="new" onclick="setFilter(this,'new')">🆕</button>
+  <button class="filter-btn" data-status="in_progress" onclick="setFilter(this,'in_progress')">⏳</button>
+  <button class="filter-btn" data-status="done" onclick="setFilter(this,'done')">✔</button>
+  <button class="filter-btn" data-status="cancelled" onclick="setFilter(this,'cancelled')">✖</button>
 </div>
 
 <!-- REFRESH BAR -->
@@ -276,10 +276,10 @@ let autoTimer     = null
 let countdown     = 30
 
 const STATUS_LABELS = {
-  new:         '✳ جديد',
-  in_progress: '⏳ جاري',
-  done:        '✔ تم',
-  cancelled:   '✖ ملغي',
+  new:         '🆕',
+  in_progress: '⏳',
+  done:        '✔',
+  cancelled:   '✖',
 }
 
 // ============================================================
