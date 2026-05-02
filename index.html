@@ -126,7 +126,9 @@
     .empty-sub { font-size:14px; color:var(--sub); }
 
     /* ===== ORDERS GRID ===== */
-    #orders-grid { padding: 0 16px 100px; display:flex; flex-direction:column; gap:12px; }
+   #orders-grid { padding: 0 16px 100px; display:grid; grid-template-columns:1fr; gap:12px; }
+@media (min-width: 768px) { #orders-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1200px) { #orders-grid { grid-template-columns: 1fr 1fr 1fr; } }
 
     /* ===== ORDER CARD ===== */
     .order-card {
