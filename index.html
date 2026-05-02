@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -38,6 +38,22 @@
       background:var(--gold-grad);
       -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
     }
+    .topbar-actions { display:flex; align-items:center; gap:8px; }
+    .reports-btn {
+      padding:6px 14px; border-radius:10px; border:1px solid rgba(255,204,68,0.3);
+      background:rgba(255,204,68,0.1); color:var(--gold-1);
+      font-family:'Cairo',sans-serif; font-size:13px; font-weight:700;
+      cursor:pointer; transition:all 0.2s; text-decoration:none;
+      display:flex; align-items:center; gap:4px;
+    }
+    .reports-btn:hover { background:rgba(255,204,68,0.2); }
+    .blacklist-btn {
+      padding:6px 14px; border-radius:10px; border:1px solid rgba(255,149,0,0.3);
+      background:rgba(255,149,0,0.1); color:var(--orange);
+      font-family:'Cairo',sans-serif; font-size:13px; font-weight:700;
+      cursor:pointer; transition:all 0.2s;
+    }
+    .blacklist-btn:hover { background:rgba(255,149,0,0.2); }
     .logout-btn {
       padding:6px 14px; border-radius:10px; border:1px solid var(--border);
       background:transparent; color:var(--sub);
@@ -46,9 +62,22 @@
     }
     .logout-btn:hover { border-color:var(--red); color:var(--red); }
 
+    /* ===== BRANCH FILTER ===== */
+    .branch-bar {
+      padding: 12px 20px 0;
+      display:flex; align-items:center; gap:8px;
+    }
+    .branch-label { font-size:13px; color:var(--sub); font-weight:700; flex-shrink:0; }
+    .branch-select {
+      padding:6px 12px; border-radius:10px; border:1px solid var(--border);
+      background:var(--item); color:var(--text);
+      font-family:'Cairo',sans-serif; font-size:13px; font-weight:700;
+      flex:1; max-width:200px;
+    }
+
     /* ===== FILTERS ===== */
     #filters {
-      padding: 16px 20px 8px;
+      padding: 12px 20px 8px;
       display:flex; gap:8px; overflow-x:auto; scrollbar-width:none;
     }
     #filters::-webkit-scrollbar { display:none; }
@@ -107,24 +136,22 @@
       animation: cardIn 0.3s ease both;
     }
     @keyframes cardIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
-    .order-card.status-new      { border-top:3px solid var(--blue); }
+    .order-card.status-new         { border-top:3px solid var(--blue); }
     .order-card.status-in_progress { border-top:3px solid var(--orange); }
-    .order-card.status-done     { border-top:3px solid var(--green); }
-    .order-card.status-cancelled{ border-top:3px solid var(--red); }
+    .order-card.status-done        { border-top:3px solid var(--green); }
+    .order-card.status-cancelled   { border-top:3px solid var(--red); }
 
     .card-header {
       padding:14px 16px 10px;
       display:flex; align-items:center; gap:10px;
     }
-    .status-dot {
-      width:10px; height:10px; border-radius:50%; flex-shrink:0;
-    }
-    .status-new .status-dot       { background:var(--blue); box-shadow:0 0 8px var(--blue); }
+    .status-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .status-new .status-dot         { background:var(--blue); box-shadow:0 0 8px var(--blue); }
     .status-in_progress .status-dot { background:var(--orange); box-shadow:0 0 8px var(--orange); }
-    .status-done .status-dot      { background:var(--green); }
-    .status-cancelled .status-dot { background:var(--red); }
+    .status-done .status-dot        { background:var(--green); }
+    .status-cancelled .status-dot   { background:var(--red); }
 
-    .order-num { font-size:13px; font-weight:900; color:var(--sub); flex:1; }
+    .order-num  { font-size:13px; font-weight:900; color:var(--sub); flex:1; }
     .order-time { font-size:11px; color:var(--sub); }
     .branch-tag {
       font-size:11px; font-weight:700; padding:3px 10px;
@@ -132,13 +159,10 @@
       color:var(--gold-1); border:1px solid rgba(255,204,68,0.2);
     }
 
-    .card-customer {
-      padding:0 16px 12px;
-      display:flex; flex-direction:column; gap:4px;
-    }
-    .cust-row { display:flex; align-items:center; gap:8px; font-size:13px; }
+    .card-customer { padding:0 16px 12px; display:flex; flex-direction:column; gap:4px; }
+    .cust-row  { display:flex; align-items:center; gap:8px; font-size:13px; }
     .cust-icon { font-size:14px; flex-shrink:0; }
-    .cust-val { font-weight:700; }
+    .cust-val  { font-weight:700; }
     .cust-phone { color:var(--gold-1); text-decoration:none; font-weight:900; }
 
     .card-divider { height:1px; background:var(--border); margin:0 16px; }
@@ -156,7 +180,7 @@
       font-size:11px; font-weight:900;
       display:flex; align-items:center; justify-content:center; flex-shrink:0;
     }
-    .item-size { color:var(--sub); font-size:12px; }
+    .item-size  { color:var(--sub); font-size:12px; }
     .item-price {
       font-size:12px; font-weight:900;
       background:var(--gold-grad);
@@ -199,6 +223,64 @@
     }
     .delete-btn:hover { background:rgba(255,59,48,0.25); }
 
+    .print-btn {
+      width:36px; height:36px; border-radius:12px; border:1px solid rgba(10,132,255,0.3);
+      background:rgba(10,132,255,0.1); color:var(--blue);
+      font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; transition:all 0.2s;
+    }
+    .print-btn:hover { background:rgba(10,132,255,0.25); }
+
+    .block-btn {
+      width:36px; height:36px; border-radius:12px; border:1px solid rgba(255,149,0,0.3);
+      background:rgba(255,149,0,0.1); color:var(--orange);
+      font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; transition:all 0.2s;
+    }
+    .block-btn:hover { background:rgba(255,149,0,0.25); }
+
+    /* ===== BLACKLIST MODAL ===== */
+    #bl-modal {
+      display:none; position:fixed; inset:0; z-index:200;
+      background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);
+      align-items:center; justify-content:center; padding:20px;
+    }
+    #bl-modal.open { display:flex; }
+    .bl-box {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:24px; padding:24px; width:100%; max-width:420px;
+    }
+    .bl-title { font-size:18px; font-weight:900; margin-bottom:16px; }
+    .bl-input {
+      width:100%; padding:10px 14px; border-radius:12px; border:1px solid var(--border);
+      background:var(--item); color:var(--text);
+      font-family:'Cairo',sans-serif; font-size:14px; margin-bottom:12px;
+      direction:ltr; text-align:right;
+    }
+    .bl-add-btn {
+      width:100%; height:40px; border-radius:12px; border:none;
+      background:var(--gold-grad); color:#000;
+      font-family:'Cairo',sans-serif; font-size:14px; font-weight:900;
+      cursor:pointer; margin-bottom:16px;
+    }
+    .bl-list { display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto; }
+    .bl-item {
+      display:flex; align-items:center; justify-content:space-between;
+      background:var(--item); border-radius:12px; padding:10px 14px;
+    }
+    .bl-phone { font-size:14px; font-weight:700; direction:ltr; }
+    .bl-remove {
+      background:rgba(255,59,48,0.15); border:1px solid rgba(255,59,48,0.3);
+      color:var(--red); border-radius:8px; padding:4px 10px;
+      font-family:'Cairo',sans-serif; font-size:12px; font-weight:700; cursor:pointer;
+    }
+    .bl-close {
+      width:100%; height:40px; border-radius:12px;
+      border:1px solid var(--border); background:transparent; color:var(--sub);
+      font-family:'Cairo',sans-serif; font-size:14px; font-weight:700;
+      cursor:pointer; margin-top:12px;
+    }
+
     /* ===== AUTO REFRESH INDICATOR ===== */
     #auto-badge {
       position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
@@ -221,16 +303,28 @@
 <div id="topbar">
   <div class="logo-sm">🥔</div>
   <div class="topbar-title">الطلبات</div>
-  <button class="logout-btn" onclick="doLogout()">خروج</button>
+  <div class="topbar-actions">
+    <a class="reports-btn" href="./reports.html">📊 تقارير</a>
+    <button class="blacklist-btn" onclick="openBlacklist()">🚫 محظور</button>
+    <button class="logout-btn" onclick="doLogout()">خروج</button>
+  </div>
 </div>
 
-<!-- FILTERS -->
+<!-- BRANCH FILTER -->
+<div class="branch-bar">
+  <span class="branch-label">الفرع:</span>
+  <select class="branch-select" id="branch-select" onchange="setBranchFilter(this.value)">
+    <option value="">الكل</option>
+  </select>
+</div>
+
+<!-- STATUS FILTERS -->
 <div id="filters">
   <button class="filter-btn active" data-status="" onclick="setFilter(this,'')">الكل</button>
-  <button class="filter-btn" data-status="new" onclick="setFilter(this,'new')">🆕</button>
-  <button class="filter-btn" data-status="in_progress" onclick="setFilter(this,'in_progress')">⏳</button>
-  <button class="filter-btn" data-status="done" onclick="setFilter(this,'done')">✔</button>
-  <button class="filter-btn" data-status="cancelled" onclick="setFilter(this,'cancelled')">✖</button>
+  <button class="filter-btn" data-status="new" onclick="setFilter(this,'new')">🆕 جديد</button>
+  <button class="filter-btn" data-status="in_progress" onclick="setFilter(this,'in_progress')">⏳ جاري</button>
+  <button class="filter-btn" data-status="done" onclick="setFilter(this,'done')">✔ مكتمل</button>
+  <button class="filter-btn" data-status="cancelled" onclick="setFilter(this,'cancelled')">✖ ملغي</button>
 </div>
 
 <!-- REFRESH BAR -->
@@ -257,6 +351,17 @@
 <!-- ORDERS -->
 <div id="orders-grid"></div>
 
+<!-- BLACKLIST MODAL -->
+<div id="bl-modal">
+  <div class="bl-box">
+    <div class="bl-title">🚫 قائمة المحظورين</div>
+    <input class="bl-input" id="bl-phone-input" type="tel" placeholder="رقم التليفون" dir="ltr" />
+    <button class="bl-add-btn" onclick="addToBlacklist()">+ إضافة للحظر</button>
+    <div class="bl-list" id="bl-list"></div>
+    <button class="bl-close" onclick="closeBlacklist()">إغلاق</button>
+  </div>
+</div>
+
 <!-- AUTO REFRESH BADGE -->
 <div id="auto-badge">
   <div class="pulse-dot"></div>
@@ -266,12 +371,12 @@
 <script>
 const API   = 'https://potatoo-eight.vercel.app/api'
 const token = localStorage.getItem('pt_token')
-
-// لو مش مسجل دخول → روح للوجن
 if (!token) window.location.replace('./login.html')
 
 let currentFilter = ''
+let currentBranch = ''
 let allOrders     = []
+let myBranches    = []
 let autoTimer     = null
 let countdown     = 30
 
@@ -283,6 +388,27 @@ const STATUS_LABELS = {
 }
 
 // ============================================================
+// LOAD BRANCHES
+// ============================================================
+async function loadBranches() {
+  try {
+    const res  = await fetch(`${API}/restaurant/branches`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    const json = await res.json()
+    if (!json.success) return
+    myBranches = json.data || []
+    const sel = document.getElementById('branch-select')
+    myBranches.forEach(b => {
+      const opt = document.createElement('option')
+      opt.value = b._id
+      opt.textContent = b.arabicName || b.englishName
+      sel.appendChild(opt)
+    })
+  } catch(e) {}
+}
+
+// ============================================================
 // LOAD ORDERS
 // ============================================================
 async function loadOrders() {
@@ -291,20 +417,19 @@ async function loadOrders() {
   countdown = 30
 
   try {
-    const url = currentFilter
-      ? `${API}/orders?status=${currentFilter}`
-      : `${API}/orders`
+    let url = `${API}/orders?`
+    if (currentFilter) url += `status=${currentFilter}&`
+    if (currentBranch) url += `branchId=${currentBranch}&`
 
     const res  = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-
-    if (res.status === 401) { doLogout(); return; }
+    if (res.status === 401) { doLogout(); return }
 
     const json = await res.json()
     if (!json.success) throw new Error()
 
     allOrders = json.data || []
     renderOrders(allOrders)
-  } catch (e) {
+  } catch(e) {
     document.getElementById('orders-count').textContent = 'فشل التحميل'
   } finally {
     btn.classList.remove('spinning')
@@ -389,9 +514,138 @@ function buildCard(o) {
     <div class="card-divider"></div>
     <div class="card-actions">
       ${actionBtns}
-      <button class="delete-btn" onclick="deleteOrder('${o._id}')">🗑</button>
+      <button class="print-btn" onclick="printOrder('${o._id}')" title="طباعة">🖨️</button>
+      <button class="block-btn" onclick="blockPhoneQuick('${o.customerPhone}')" title="حظر الرقم">🚫</button>
+      <button class="delete-btn" onclick="deleteOrder('${o._id}')" title="حذف">🗑</button>
     </div>
   </div>`
+}
+
+// ============================================================
+// PRINT ORDER
+// ============================================================
+function printOrder(orderId) {
+  const o = allOrders.find(x => x._id === orderId)
+  if (!o) return
+  const branchName = o.branch?.arabicName || o.branch?.englishName || '—'
+  const itemsRows  = (o.items || []).map(i =>
+    `<tr>
+      <td>${i.nameAr} (${i.sizeKey})</td>
+      <td style="text-align:center">${i.qty}</td>
+      <td style="text-align:left">${i.price * i.qty} ج</td>
+     </tr>`
+  ).join('')
+  const total = (o.items || []).reduce((s, i) => s + (i.price || 0) * i.qty, 0)
+  const win = window.open('', '_blank')
+  win.document.write(`<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <title>طلب #${o._id.slice(-6).toUpperCase()}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 24px; direction: rtl; color: #000; }
+    h2 { text-align: center; font-size: 20px; margin-bottom: 4px; }
+    .sub { text-align: center; color: #666; font-size: 13px; margin-bottom: 20px; }
+    .info { margin-bottom: 16px; font-size: 14px; line-height: 1.8; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th { background: #f0f0f0; padding: 8px; font-size: 13px; border-bottom: 2px solid #ccc; }
+    td { padding: 7px 8px; font-size: 13px; border-bottom: 1px solid #eee; }
+    .total-row td { font-weight: bold; font-size: 15px; border-top: 2px solid #ccc; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <h2>🥔 Potatoo</h2>
+  <div class="sub">طلب #${o._id.slice(-6).toUpperCase()} — ${new Date(o.createdAt).toLocaleString('ar-EG')}</div>
+  <div class="info">
+    <b>الفرع:</b> ${branchName}<br/>
+    <b>العميل:</b> ${o.customerName}<br/>
+    <b>العنوان:</b> ${o.customerAddress}<br/>
+    <b>التليفون:</b> ${o.customerPhone}
+  </div>
+  <table>
+    <thead><tr><th>الصنف</th><th>الكمية</th><th>السعر</th></tr></thead>
+    <tbody>${itemsRows}</tbody>
+    <tfoot><tr class="total-row"><td colspan="2">الإجمالي</td><td>${total} ج</td></tr></tfoot>
+  </table>
+  <script>window.onload = () => { window.print(); window.close(); }<\/script>
+</body>
+</html>`)
+  win.document.close()
+}
+
+// ============================================================
+// BLACKLIST MODAL
+// ============================================================
+async function openBlacklist() {
+  document.getElementById('bl-modal').classList.add('open')
+  await renderBlacklist()
+}
+
+function closeBlacklist() {
+  document.getElementById('bl-modal').classList.remove('open')
+}
+
+async function renderBlacklist() {
+  const list = document.getElementById('bl-list')
+  list.innerHTML = '<div style="color:var(--sub);font-size:13px;text-align:center">جاري التحميل...</div>'
+  try {
+    const res  = await fetch(`${API}/blacklist`, { headers: { Authorization: `Bearer ${token}` } })
+    const json = await res.json()
+    if (!json.success || !json.data.length) {
+      list.innerHTML = '<div style="color:var(--sub);font-size:13px;text-align:center">لا يوجد أرقام محظورة</div>'
+      return
+    }
+    list.innerHTML = json.data.map(entry => `
+      <div class="bl-item">
+        <span class="bl-phone">${entry.phone}</span>
+        <button class="bl-remove" onclick="removeFromBlacklist('${entry._id}')">إلغاء الحظر</button>
+      </div>`).join('')
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--red);font-size:13px">فشل التحميل</div>'
+  }
+}
+
+async function addToBlacklist() {
+  const phone = document.getElementById('bl-phone-input').value.trim()
+  if (!phone) return
+  try {
+    const res  = await fetch(`${API}/blacklist`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
+    })
+    const json = await res.json()
+    if (json.success) {
+      document.getElementById('bl-phone-input').value = ''
+      await renderBlacklist()
+    } else {
+      alert(json.message)
+    }
+  } catch(e) { alert('فشل الإضافة') }
+}
+
+async function removeFromBlacklist(id) {
+  try {
+    await fetch(`${API}/blacklist/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    await renderBlacklist()
+  } catch(e) { alert('فشل الحذف') }
+}
+
+async function blockPhoneQuick(phone) {
+  if (!confirm(`حظر الرقم ${phone}؟`)) return
+  try {
+    const res  = await fetch(`${API}/blacklist`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
+    })
+    const json = await res.json()
+    alert(json.success ? 'تم الحظر ✅' : json.message)
+  } catch(e) { alert('فشل الحظر') }
 }
 
 // ============================================================
@@ -401,7 +655,6 @@ async function changeStatus(orderId, status, btn) {
   const card = document.getElementById('card-' + orderId)
   if (!card) return
 
-  // تحديث فوري في UI
   card.className = `order-card status-${status}`
   card.querySelectorAll('.status-action-btn').forEach(b => {
     const isCurrent = b.classList.contains('btn-' + status)
@@ -417,12 +670,9 @@ async function changeStatus(orderId, status, btn) {
     })
     const json = await res.json()
     if (!json.success) throw new Error()
-
-    // تحديث في الـ allOrders
     const idx = allOrders.findIndex(o => o._id === orderId)
     if (idx !== -1) allOrders[idx].status = status
-  } catch (e) {
-    // rollback
+  } catch(e) {
     loadOrders()
   }
 }
@@ -443,17 +693,16 @@ async function deleteOrder(orderId) {
     })
     const json = await res.json()
     if (!json.success) throw new Error()
-
     allOrders = allOrders.filter(o => o._id !== orderId)
     renderOrders(allOrders)
-  } catch (e) {
+  } catch(e) {
     if (card) card.style.opacity = '1'
     alert('فشل الحذف، حاول مرة أخرى')
   }
 }
 
 // ============================================================
-// FILTER
+// FILTERS
 // ============================================================
 function setFilter(el, status) {
   currentFilter = status
@@ -463,8 +712,13 @@ function setFilter(el, status) {
   loadOrders()
 }
 
+function setBranchFilter(val) {
+  currentBranch = val
+  loadOrders()
+}
+
 // ============================================================
-// AUTO REFRESH (كل 30 ثانية)
+// AUTO REFRESH
 // ============================================================
 function startAutoRefresh() {
   clearInterval(autoTimer)
@@ -493,11 +747,11 @@ function doLogout() {
 // ============================================================
 function formatTime(iso) {
   if (!iso) return ''
-  const d = new Date(iso)
-  const now = new Date()
+  const d    = new Date(iso)
+  const now  = new Date()
   const diff = Math.floor((now - d) / 60000)
-  if (diff < 1)  return 'الآن'
-  if (diff < 60) return `منذ ${diff} دقيقة`
+  if (diff < 1)    return 'الآن'
+  if (diff < 60)   return `منذ ${diff} دقيقة`
   if (diff < 1440) return `منذ ${Math.floor(diff/60)} ساعة`
   return d.toLocaleDateString('ar-EG')
 }
@@ -505,6 +759,7 @@ function formatTime(iso) {
 // ============================================================
 // INIT
 // ============================================================
+loadBranches()
 loadOrders()
 startAutoRefresh()
 </script>
