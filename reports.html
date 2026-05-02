@@ -26,10 +26,22 @@
       background:transparent;color:var(--sub);font-family:'Cairo',sans-serif;
       font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;
       display:flex;align-items:center;}
-    .date-bar{padding:16px 20px;display:flex;align-items:center;gap:12px;}
+    .branch-badge {
+      padding: 4px 12px; border-radius:20px;
+      background:rgba(10,132,255,0.15); color:var(--blue);
+      border:1px solid rgba(10,132,255,0.3);
+      font-size:12px; font-weight:900;
+    }
+    .date-bar{padding:16px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
     .date-input{padding:8px 14px;border-radius:10px;border:1px solid var(--border);
       background:var(--item);color:var(--text);font-family:'Cairo',sans-serif;
       font-size:14px;font-weight:700;}
+    /* فلتر الفرع للأدمن */
+    .branch-filter-select {
+      padding:8px 14px;border-radius:10px;border:1px solid var(--border);
+      background:var(--item);color:var(--text);font-family:'Cairo',sans-serif;
+      font-size:14px;font-weight:700;flex:1;max-width:200px;
+    }
     .load-btn{padding:8px 20px;border-radius:10px;border:none;
       background:var(--gold-grad);color:#000;font-family:'Cairo',sans-serif;
       font-size:14px;font-weight:900;cursor:pointer;}
@@ -65,11 +77,17 @@
 <div id="topbar">
   <div class="logo-sm">🥔</div>
   <div class="topbar-title">التقارير اليومية</div>
+  <!-- بادج الفرع لو يوزر فرع -->
+  <span class="branch-badge" id="branch-badge" style="display:none;"></span>
   <a class="back-btn" href="./index.html">← رجوع</a>
 </div>
 
 <div class="date-bar">
   <input type="date" class="date-input" id="date-input"/>
+  <!-- فلتر الفروع للأدمن بس -->
+  <select class="branch-filter-select" id="branch-filter-sel" style="display:none;" onchange="loadReport()">
+    <option value="">كل الفروع</option>
+  </select>
   <button class="load-btn" onclick="loadReport()">عرض</button>
 </div>
 
@@ -87,20 +105,65 @@
 <div class="orders-list" id="orders-list"></div>
 
 <script>
-const API   = 'https://potatoo-eight.vercel.app/api'
-const token = localStorage.getItem('pt_token')
+const API     = 'https://potatoo-eight.vercel.app/api'
+const token   = localStorage.getItem('pt_token')
+const ptUser  = JSON.parse(localStorage.getItem('pt_user') || '{}')
+const isBranch = ptUser.role === 'branch' || !!ptUser.branchId
+
 if (!token) window.location.replace('./login.html')
+
+// branchId: من URL params (لما الـ index.html يبعته) أو من ptUser
+const urlParams    = new URLSearchParams(window.location.search)
+const fixedBranchId = urlParams.get('branchId') || (isBranch ? ptUser.branchId : null)
 
 // تحديد تاريخ النهارده تلقائي
 const today = new Date().toISOString().split('T')[0]
 document.getElementById('date-input').value = today
 
+async function init() {
+  if (isBranch && fixedBranchId) {
+    // يوزر فرع: أظهر بادج اسم الفرع، أخفي فلتر الفروع
+    const badge = document.getElementById('branch-badge')
+    badge.style.display = 'inline-flex'
+    badge.textContent = '🏪 ' + (ptUser.branchName || 'الفرع')
+  } else if (!isBranch) {
+    // أدمن: حمّل قائمة الفروع وأظهر الفلتر
+    await loadBranchesFilter()
+  }
+  loadReport()
+}
+
+async function loadBranchesFilter() {
+  try {
+    const res  = await fetch(`${API}/restaurant/user-restaurants`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    const json = await res.json()
+    if (!json.success) return
+    const branches = json.data?.branches || []
+    const sel = document.getElementById('branch-filter-sel')
+    branches.forEach(b => {
+      const opt = document.createElement('option')
+      opt.value = b._id
+      opt.textContent = b.arabicName || b.englishName
+      sel.appendChild(opt)
+    })
+    sel.style.display = 'block'
+  } catch(e) {}
+}
+
 async function loadReport() {
   const date = document.getElementById('date-input').value
   if (!date) return
 
+  // حدد الـ branchId: فرع → ثابت، أدمن → من الفلتر
+  const selectedBranch = fixedBranchId || document.getElementById('branch-filter-sel').value || ''
+
   try {
-    const res  = await fetch(`${API}/orders?date=${date}`, {
+    let url = `${API}/orders?date=${date}`
+    if (selectedBranch) url += `&branchId=${selectedBranch}`
+
+    const res  = await fetch(url, {
       headers:{ Authorization:`Bearer ${token}` }
     })
     const json = await res.json()
@@ -129,14 +192,14 @@ async function loadReport() {
 
     // Orders list
     document.getElementById('orders-list').innerHTML = orders.map(o => {
-      const total = (o.items||[]).reduce((s,i)=>s+(i.price||0)*i.qty,0)
-      const time  = new Date(o.createdAt).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})
+      const oTotal = (o.items||[]).reduce((s,i)=>s+(i.price||0)*i.qty,0)
+      const time   = new Date(o.createdAt).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})
       const cancelledNote = o.status==='cancelled' ? `<div class="cancelled-note">✖ ملغي</div>` : ''
       return `<div class="order-row">
         <div class="order-row-top">
           <span class="order-row-id">#${o._id.slice(-6).toUpperCase()}</span>
           <span class="status-pill s-${o.status}">${{new:'جديد',in_progress:'جاري',done:'مكتمل',cancelled:'ملغي'}[o.status]}</span>
-          <span class="order-row-total">${total} ج</span>
+          <span class="order-row-total">${oTotal} ج</span>
         </div>
         <div class="order-row-name">👤 ${o.customerName} — 📞 ${o.customerPhone}</div>
         <div class="order-row-time">⏰ ${time}</div>
@@ -148,7 +211,7 @@ async function loadReport() {
   }
 }
 
-loadReport()
+init()
 </script>
 </body>
 </html>
