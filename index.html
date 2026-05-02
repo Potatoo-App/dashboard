@@ -319,9 +319,14 @@
 <div id="topbar">
   <div class="logo-sm">🥔</div>
   <div class="topbar-title">الطلبات</div>
-  <div class="topbar-actions">
+<div class="topbar-actions">
     <a class="reports-btn" href="./reports.html">📊 تقارير</a>
     <button class="blacklist-btn" onclick="openBlacklist()">🚫 محظور</button>
+    <button class="branch-users-btn" onclick="openBranchUsers()" style="
+      padding:6px 14px; border-radius:10px; border:1px solid rgba(48,209,88,0.3);
+      background:rgba(48,209,88,0.1); color:var(--green);
+      font-family:'Cairo',sans-serif; font-size:13px; font-weight:700; cursor:pointer;
+    ">👥 يوزرز</button>
     <button class="logout-btn" onclick="doLogout()">خروج</button>
   </div>
 </div>
@@ -385,12 +390,15 @@
 </div>
 
 <script>
-const API   = 'https://potatoo-eight.vercel.app/api'
-const token = localStorage.getItem('pt_token')
+const API      = 'https://potatoo-eight.vercel.app/api'
+const token    = localStorage.getItem('pt_token')
+const ptUser   = JSON.parse(localStorage.getItem('pt_user') || '{}')
+const isBranch = ptUser.role === 'branch' || ptUser.branchId
+
 if (!token) window.location.replace('./login.html')
 
 let currentFilter = ''
-let currentBranch = ''
+let currentBranch = isBranch ? ptUser.branchId : ''
 let allOrders     = []
 let myBranches    = []
 let autoTimer     = null
@@ -402,18 +410,108 @@ const STATUS_LABELS = {
   done:        '✔',
   cancelled:   '✖',
 }
+// ============================================================
+// BRANCH USERS MANAGEMENT
+// ============================================================
+async function openBranchUsers() {
+  document.getElementById('bu-modal').style.display = 'flex'
+  // املا الـ dropdown بالفروع
+  const sel = document.getElementById('bu-branch-sel')
+  sel.innerHTML = '<option value="">اختر فرع</option>'
+  myBranches.forEach(b => {
+    const opt = document.createElement('option')
+    opt.value = b._id
+    opt.textContent = b.arabicName || b.englishName
+    sel.appendChild(opt)
+  })
+  await renderBranchUsersList()
+}
 
+function closeBranchUsers() {
+  document.getElementById('bu-modal').style.display = 'none'
+}
+
+async function renderBranchUsersList() {
+  const list = document.getElementById('bu-list')
+  list.innerHTML = '<div style="color:var(--sub);font-size:13px;text-align:center">جاري التحميل...</div>'
+  try {
+    const res  = await fetch(`${API}/branch-users`, { headers: { Authorization: `Bearer ${token}` } })
+    const json = await res.json()
+    if (!json.success || !json.data.length) {
+      list.innerHTML = '<div style="color:var(--sub);font-size:13px;text-align:center">لا يوجد يوزرز</div>'
+      return
+    }
+    list.innerHTML = json.data.map(u => `
+      <div style="display:flex; align-items:center; justify-content:space-between;
+        background:var(--item); border-radius:12px; padding:10px 14px;">
+        <div>
+          <div style="font-size:14px; font-weight:700;">👤 ${u.username}</div>
+          <div style="font-size:12px; color:var(--sub);">🏪 ${u.branch?.arabicName || u.branch?.englishName || '—'}</div>
+        </div>
+        <button onclick="deleteBranchUser('${u._id}')" style="
+          background:rgba(255,59,48,0.15); border:1px solid rgba(255,59,48,0.3);
+          color:var(--red); border-radius:8px; padding:4px 10px;
+          font-family:'Cairo',sans-serif; font-size:12px; font-weight:700; cursor:pointer;">حذف</button>
+      </div>`).join('')
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--red);font-size:13px">فشل التحميل</div>'
+  }
+}
+
+async function addBranchUser() {
+  const branchId = document.getElementById('bu-branch-sel').value
+  const username = document.getElementById('bu-username').value.trim()
+  const password = document.getElementById('bu-password').value.trim()
+  if (!branchId || !username || !password) { alert('كل الحقول مطلوبة'); return }
+  try {
+    const res  = await fetch(`${API}/branch-users`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ branchId, username, password })
+    })
+    const json = await res.json()
+    if (json.success) {
+      document.getElementById('bu-username').value = ''
+      document.getElementById('bu-password').value = ''
+      await renderBranchUsersList()
+    } else { alert(json.message) }
+  } catch(e) { alert('فشل الإضافة') }
+}
+
+async function deleteBranchUser(id) {
+  if (!confirm('حذف هذا اليوزر؟')) return
+  try {
+    await fetch(`${API}/branch-users/${id}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    })
+    await renderBranchUsersList()
+  } catch(e) { alert('فشل الحذف') }
+}
 // ============================================================
 // LOAD BRANCHES
 // ============================================================
 async function loadBranches() {
+  // يوزر الفرع — مش محتاج dropdown
+  if (isBranch) {
+    document.querySelector('.branch-bar').style.display = 'none'
+    // أضف badge باسم الفرع في الـ topbar
+    const badge = document.createElement('span')
+    badge.className = 'branch-user-badge'
+    badge.textContent = '🏪 ' + (ptUser.branchName || 'الفرع')
+    document.querySelector('.topbar-actions').prepend(badge)
+    // إخفاء أزرار مش مخصصة له
+    document.querySelector('.reports-btn').style.display  = 'none'
+    document.querySelector('.blacklist-btn').style.display = 'none'
+    return
+  }
+
   try {
-   const res  = await fetch(`${API}/restaurant/user-restaurants`, {
-  headers: { Authorization: `Bearer ${token}` }
-})
-const json = await res.json()
-if (!json.success) return
-myBranches = json.data?.branches || []
+    const res  = await fetch(`${API}/restaurant/user-restaurants`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    const json = await res.json()
+    if (!json.success) return
+    myBranches = json.data?.branches || []
     const sel = document.getElementById('branch-select')
     myBranches.forEach(b => {
       const opt = document.createElement('option')
