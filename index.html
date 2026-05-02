@@ -232,12 +232,26 @@
     .print-btn:hover { background:rgba(10,132,255,0.25); }
 
     .block-btn {
-      width:36px; height:36px; border-radius:12px; border:1px solid rgba(255,149,0,0.3);
-      background:rgba(255,149,0,0.1); color:var(--orange);
-      font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-      flex-shrink:0; transition:all 0.2s;
-    }
-    .block-btn:hover { background:rgba(255,149,0,0.25); }
+  width:36px; height:36px; border-radius:12px; border:1px solid rgba(255,149,0,0.3);
+  background:rgba(255,149,0,0.1); color:var(--orange);
+  font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:all 0.2s;
+}
+.block-btn:hover { background:rgba(255,149,0,0.25); }
+
+.blocked-banner {
+  margin: 0 16px 10px;
+  padding: 8px 14px;
+  background: rgba(255,59,48,0.12);
+  border: 1px solid rgba(255,59,48,0.35);
+  border-radius: 12px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 900; color: var(--red);
+}
+.order-card.status-new.is-blocked,
+.order-card.status-in_progress.is-blocked {
+  box-shadow: 0 0 0 2px var(--red), 0 4px 20px rgba(255,59,48,0.3);
+}
 
     /* ===== BLACKLIST MODAL ===== */
     #bl-modal {
@@ -491,7 +505,12 @@ function buildCard(o) {
     </button>`
   }).join('')
 
-  return `<div class="order-card status-${o.status}" id="card-${o._id}">
+const blockedBanner = o.isBlocked
+    ? `<div class="blocked-banner">🚫 رقم محظور — ${o.customerPhone}</div>`
+    : ''
+
+  return `<div class="order-card status-${o.status} ${o.isBlocked ? 'is-blocked' : ''}" id="card-${o._id}">
+    ${blockedBanner}
     <div class="card-header">
       <div class="status-dot"></div>
       <div class="order-num">#${shortId}</div>
