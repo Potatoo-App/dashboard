@@ -62,6 +62,14 @@
     }
     .logout-btn:hover { border-color:var(--red); color:var(--red); }
 
+    /* ===== BRANCH USER BADGE ===== */
+    .branch-user-badge {
+      padding: 4px 12px; border-radius:20px;
+      background:rgba(10,132,255,0.15); color:var(--blue);
+      border:1px solid rgba(10,132,255,0.3);
+      font-size:12px; font-weight:900; flex-shrink:0;
+    }
+
     /* ===== BRANCH FILTER ===== */
     .branch-bar {
       padding: 12px 20px 0;
@@ -126,9 +134,9 @@
     .empty-sub { font-size:14px; color:var(--sub); }
 
     /* ===== ORDERS GRID ===== */
-   #orders-grid { padding: 0 16px 100px; display:grid; grid-template-columns:1fr; gap:12px; }
-@media (min-width: 768px) { #orders-grid { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 1200px) { #orders-grid { grid-template-columns: 1fr 1fr 1fr; } }
+    #orders-grid { padding: 0 16px 100px; display:grid; grid-template-columns:1fr; gap:12px; }
+    @media (min-width: 768px)  { #orders-grid { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 1200px) { #orders-grid { grid-template-columns: 1fr 1fr 1fr; } }
 
     /* ===== ORDER CARD ===== */
     .order-card {
@@ -234,26 +242,26 @@
     .print-btn:hover { background:rgba(10,132,255,0.25); }
 
     .block-btn {
-  width:36px; height:36px; border-radius:12px; border:1px solid rgba(255,149,0,0.3);
-  background:rgba(255,149,0,0.1); color:var(--orange);
-  font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  flex-shrink:0; transition:all 0.2s;
-}
-.block-btn:hover { background:rgba(255,149,0,0.25); }
+      width:36px; height:36px; border-radius:12px; border:1px solid rgba(255,149,0,0.3);
+      background:rgba(255,149,0,0.1); color:var(--orange);
+      font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; transition:all 0.2s;
+    }
+    .block-btn:hover { background:rgba(255,149,0,0.25); }
 
-.blocked-banner {
-  margin: 0 16px 10px;
-  padding: 8px 14px;
-  background: rgba(255,59,48,0.12);
-  border: 1px solid rgba(255,59,48,0.35);
-  border-radius: 12px;
-  display: flex; align-items: center; gap: 8px;
-  font-size: 13px; font-weight: 900; color: var(--red);
-}
-.order-card.status-new.is-blocked,
-.order-card.status-in_progress.is-blocked {
-  box-shadow: 0 0 0 2px var(--red), 0 4px 20px rgba(255,59,48,0.3);
-}
+    .blocked-banner {
+      margin: 0 16px 10px;
+      padding: 8px 14px;
+      background: rgba(255,59,48,0.12);
+      border: 1px solid rgba(255,59,48,0.35);
+      border-radius: 12px;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 900; color: var(--red);
+    }
+    .order-card.status-new.is-blocked,
+    .order-card.status-in_progress.is-blocked {
+      box-shadow: 0 0 0 2px var(--red), 0 4px 20px rgba(255,59,48,0.3);
+    }
 
     /* ===== BLACKLIST MODAL ===== */
     #bl-modal {
@@ -319,7 +327,7 @@
 <div id="topbar">
   <div class="logo-sm">🥔</div>
   <div class="topbar-title">الطلبات</div>
-<div class="topbar-actions">
+  <div class="topbar-actions">
     <a class="reports-btn" href="./reports.html">📊 تقارير</a>
     <button class="blacklist-btn" onclick="openBlacklist()">🚫 محظور</button>
     <button class="branch-users-btn" onclick="openBranchUsers()" style="
@@ -389,6 +397,34 @@
   <span id="auto-text">تحديث تلقائي كل 30 ثانية</span>
 </div>
 
+<!-- BRANCH USERS MODAL -->
+<div id="bu-modal" style="display:none; position:fixed; inset:0; z-index:200;
+  background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);
+  align-items:center; justify-content:center; padding:20px;">
+  <div style="background:var(--card); border:1px solid var(--border);
+    border-radius:24px; padding:24px; width:100%; max-width:440px; max-height:85vh; overflow-y:auto;">
+    <div style="font-size:18px; font-weight:900; margin-bottom:16px;">👥 يوزرز الفروع</div>
+    <select id="bu-branch-sel" style="width:100%; padding:8px 12px; border-radius:10px;
+      border:1px solid var(--border); background:var(--item); color:var(--text);
+      font-family:'Cairo',sans-serif; font-size:13px; margin-bottom:8px;">
+      <option value="">اختر فرع</option>
+    </select>
+    <input id="bu-username" placeholder="يوزرنيم" style="width:100%; padding:8px 12px;
+      border-radius:10px; border:1px solid var(--border); background:var(--item); color:var(--text);
+      font-family:'Cairo',sans-serif; font-size:13px; margin-bottom:8px; direction:ltr; text-align:right;" />
+    <input id="bu-password" type="password" placeholder="باسورد" style="width:100%; padding:8px 12px;
+      border-radius:10px; border:1px solid var(--border); background:var(--item); color:var(--text);
+      font-family:'Cairo',sans-serif; font-size:13px; margin-bottom:8px;" />
+    <button onclick="addBranchUser()" style="width:100%; height:40px; border-radius:12px; border:none;
+      background:var(--gold-grad); color:#000; font-family:'Cairo',sans-serif;
+      font-size:14px; font-weight:900; cursor:pointer; margin-bottom:16px;">+ إضافة يوزر</button>
+    <div id="bu-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+    <button onclick="closeBranchUsers()" style="width:100%; height:40px; border-radius:12px; margin-top:12px;
+      border:1px solid var(--border); background:transparent; color:var(--sub);
+      font-family:'Cairo',sans-serif; font-size:14px; font-weight:700; cursor:pointer;">إغلاق</button>
+  </div>
+</div>
+
 <script>
 const API      = 'https://potatoo-eight.vercel.app/api'
 const token    = localStorage.getItem('pt_token')
@@ -410,12 +446,12 @@ const STATUS_LABELS = {
   done:        '✔',
   cancelled:   '✖',
 }
+
 // ============================================================
 // BRANCH USERS MANAGEMENT
 // ============================================================
 async function openBranchUsers() {
   document.getElementById('bu-modal').style.display = 'flex'
-  // املا الـ dropdown بالفروع
   const sel = document.getElementById('bu-branch-sel')
   sel.innerHTML = '<option value="">اختر فرع</option>'
   myBranches.forEach(b => {
@@ -487,20 +523,19 @@ async function deleteBranchUser(id) {
     await renderBranchUsersList()
   } catch(e) { alert('فشل الحذف') }
 }
+
 // ============================================================
 // LOAD BRANCHES
 // ============================================================
 async function loadBranches() {
-  // يوزر الفرع — مش محتاج dropdown
   if (isBranch) {
-    document.querySelector('.branch-bar').style.display = 'none'
-    // أضف badge باسم الفرع في الـ topbar
+    document.querySelector('.branch-bar').style.display        = 'none'
+    document.querySelector('.branch-users-btn').style.display  = 'none'
     const badge = document.createElement('span')
     badge.className = 'branch-user-badge'
     badge.textContent = '🏪 ' + (ptUser.branchName || 'الفرع')
     document.querySelector('.topbar-actions').prepend(badge)
-    // إخفاء أزرار مش مخصصة له
-    document.querySelector('.reports-btn').style.display  = 'none'
+    document.querySelector('.reports-btn').style.display   = 'none'
     document.querySelector('.blacklist-btn').style.display = 'none'
     return
   }
@@ -605,7 +640,7 @@ function buildCard(o) {
     </button>`
   }).join('')
 
-const blockedBanner = o.isBlocked
+  const blockedBanner = o.isBlocked
     ? `<div class="blocked-banner">🚫 رقم محظور — ${o.customerPhone}</div>`
     : ''
 
@@ -639,12 +674,6 @@ const blockedBanner = o.isBlocked
     </div>
   </div>`
 }
-  .branch-user-badge {
-  padding: 4px 12px; border-radius:20px;
-  background:rgba(10,132,255,0.15); color:var(--blue);
-  border:1px solid rgba(10,132,255,0.3);
-  font-size:12px; font-weight:900; flex-shrink:0;
-}
 
 // ============================================================
 // PRINT ORDER
@@ -667,7 +696,6 @@ function printOrder(orderId) {
 <head>
   <meta charset="UTF-8"/>
   <title>طلب #${o._id.slice(-6).toUpperCase()}</title>
-  
   <style>
     body { font-family: Arial, sans-serif; padding: 24px; direction: rtl; color: #000; }
     h2 { text-align: center; font-size: 20px; margin-bottom: 4px; }
@@ -695,33 +723,6 @@ function printOrder(orderId) {
     <tfoot><tr class="total-row"><td colspan="2">الإجمالي</td><td>${total} ج</td></tr></tfoot>
   </table>
   <script>window.onload = () => { window.print(); window.close(); }<\/script>
-  <!-- BRANCH USERS MODAL -->
-<div id="bu-modal" style="display:none; position:fixed; inset:0; z-index:200;
-  background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);
-  align-items:center; justify-content:center; padding:20px;">
-  <div style="background:var(--card); border:1px solid var(--border);
-    border-radius:24px; padding:24px; width:100%; max-width:440px; max-height:85vh; overflow-y:auto;">
-    <div style="font-size:18px; font-weight:900; margin-bottom:16px;">👥 يوزرز الفروع</div>
-    <select id="bu-branch-sel" style="width:100%; padding:8px 12px; border-radius:10px;
-      border:1px solid var(--border); background:var(--item); color:var(--text);
-      font-family:'Cairo',sans-serif; font-size:13px; margin-bottom:8px;">
-      <option value="">اختر فرع</option>
-    </select>
-    <input id="bu-username" placeholder="يوزرنيم" style="width:100%; padding:8px 12px;
-      border-radius:10px; border:1px solid var(--border); background:var(--item); color:var(--text);
-      font-family:'Cairo',sans-serif; font-size:13px; margin-bottom:8px; direction:ltr; text-align:right;" />
-    <input id="bu-password" type="password" placeholder="باسورد" style="width:100%; padding:8px 12px;
-      border-radius:10px; border:1px solid var(--border); background:var(--item); color:var(--text);
-      font-family:'Cairo',sans-serif; font-size:13px; margin-bottom:8px;" />
-    <button onclick="addBranchUser()" style="width:100%; height:40px; border-radius:12px; border:none;
-      background:var(--gold-grad); color:#000; font-family:'Cairo',sans-serif;
-      font-size:14px; font-weight:900; cursor:pointer; margin-bottom:16px;">+ إضافة يوزر</button>
-    <div id="bu-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-    <button onclick="closeBranchUsers()" style="width:100%; height:40px; border-radius:12px; margin-top:12px;
-      border:1px solid var(--border); background:transparent; color:var(--sub);
-      font-family:'Cairo',sans-serif; font-size:14px; font-weight:700; cursor:pointer;">إغلاق</button>
-  </div>
-</div>
 </body>
 </html>`)
   win.document.close()
