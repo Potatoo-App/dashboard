@@ -397,7 +397,7 @@ async function loadBranches() {
 })
 const json = await res.json()
 if (!json.success) return
-myBranches = json.data || []
+myBranches = json.data?.branches || []
     const sel = document.getElementById('branch-select')
     myBranches.forEach(b => {
       const opt = document.createElement('option')
