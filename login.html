@@ -136,7 +136,7 @@ const API = 'https://potatoo-eight.vercel.app/api'
 
 // لو مسجل دخول بالفعل → روح للداشبورد
 if (localStorage.getItem('pt_token')) {
-  window.location.replace('./index.html')
+  window.location.replace('./index.html?v=2')
 }
 
 // Enter key
@@ -179,7 +179,7 @@ async function doLogin() {
     localStorage.setItem('pt_token', json.token)
     localStorage.setItem('pt_user',  JSON.stringify({ name: json.data?.name || identity }))
 
-    window.location.replace('./index.html')
+    window.location.replace('./index.html?v=2')
   } catch (e) {
     showErr('تعذر الاتصال بالسيرفر، حاول مرة أخرى')
   } finally {
