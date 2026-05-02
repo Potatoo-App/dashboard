@@ -178,7 +178,6 @@ async function doLogin() {
     // حفظ الـ token والبيانات
     localStorage.setItem('pt_token', json.token)
     localStorage.setItem('pt_user',  JSON.stringify({ name: json.data?.name || identity }))
-
     window.location.replace('./index.html?v=2')
   } catch (e) {
     showErr('تعذر الاتصال بالسيرفر، حاول مرة أخرى')
