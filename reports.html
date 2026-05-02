@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Potatoo — التقارير</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --gold-1:#FFCC44; --gold-2:#E08A00;
+      --bg:#0E0E0E; --card:#1A1A1A; --item:#222222; --border:#2E2E2E;
+      --text:#FFFFFF; --sub:rgba(255,255,255,0.5);
+      --gold-grad:linear-gradient(180deg,#FFCC44,#E08A00);
+      --red:#FF3B30; --green:#30D158; --orange:#FF9500; --blue:#0A84FF;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;min-height:100vh;}
+    #topbar{position:sticky;top:0;z-index:50;background:rgba(14,14,14,0.95);
+      backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+      padding:0 20px;height:60px;display:flex;align-items:center;gap:12px;}
+    .logo-sm{width:36px;height:36px;border-radius:10px;background:var(--gold-grad);
+      display:flex;align-items:center;justify-content:center;font-size:18px;}
+    .topbar-title{font-size:18px;font-weight:900;flex:1;
+      background:var(--gold-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .back-btn{padding:6px 14px;border-radius:10px;border:1px solid var(--border);
+      background:transparent;color:var(--sub);font-family:'Cairo',sans-serif;
+      font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;
+      display:flex;align-items:center;}
+    .date-bar{padding:16px 20px;display:flex;align-items:center;gap:12px;}
+    .date-input{padding:8px 14px;border-radius:10px;border:1px solid var(--border);
+      background:var(--item);color:var(--text);font-family:'Cairo',sans-serif;
+      font-size:14px;font-weight:700;}
+    .load-btn{padding:8px 20px;border-radius:10px;border:none;
+      background:var(--gold-grad);color:#000;font-family:'Cairo',sans-serif;
+      font-size:14px;font-weight:900;cursor:pointer;}
+    .stats-grid{padding:0 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;
+      padding:16px;display:flex;flex-direction:column;gap:6px;}
+    .stat-label{font-size:12px;color:var(--sub);font-weight:700;}
+    .stat-val{font-size:24px;font-weight:900;background:var(--gold-grad);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .section-title{padding:8px 20px;font-size:14px;font-weight:900;color:var(--sub);}
+    .top-item{background:var(--card);border:1px solid var(--border);border-radius:14px;
+      padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+      margin:0 16px 8px;}
+    .top-name{font-size:14px;font-weight:700;}
+    .top-count{font-size:13px;font-weight:900;color:var(--gold-1);}
+    .orders-list{padding:0 16px 100px;display:flex;flex-direction:column;gap:8px;}
+    .order-row{background:var(--card);border:1px solid var(--border);border-radius:14px;
+      padding:12px 16px;display:flex;flex-direction:column;gap:4px;}
+    .order-row-top{display:flex;justify-content:space-between;align-items:center;}
+    .order-row-id{font-size:13px;font-weight:900;color:var(--sub);}
+    .order-row-total{font-size:14px;font-weight:900;color:var(--gold-1);}
+    .order-row-name{font-size:13px;font-weight:700;}
+    .order-row-time{font-size:11px;color:var(--sub);}
+    .status-pill{font-size:11px;font-weight:900;padding:3px 10px;border-radius:20px;}
+    .s-new{background:rgba(10,132,255,0.15);color:var(--blue);}
+    .s-in_progress{background:rgba(255,149,0,0.15);color:var(--orange);}
+    .s-done{background:rgba(48,209,88,0.15);color:var(--green);}
+    .s-cancelled{background:rgba(255,59,48,0.15);color:var(--red);}
+    .cancelled-note{font-size:12px;color:var(--red);font-weight:700;}
+  </style>
+</head>
+<body>
+<div id="topbar">
+  <div class="logo-sm">🥔</div>
+  <div class="topbar-title">التقارير اليومية</div>
+  <a class="back-btn" href="./index.html">← رجوع</a>
+</div>
+
+<div class="date-bar">
+  <input type="date" class="date-input" id="date-input"/>
+  <button class="load-btn" onclick="loadReport()">عرض</button>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-label">عدد الطلبات</div><div class="stat-val" id="s-count">—</div></div>
+  <div class="stat-card"><div class="stat-label">إجمالي المبيعات</div><div class="stat-val" id="s-total">—</div></div>
+  <div class="stat-card"><div class="stat-label">الملغي</div><div class="stat-val" id="s-cancelled">—</div></div>
+  <div class="stat-card"><div class="stat-label">مكتمل</div><div class="stat-val" id="s-done">—</div></div>
+</div>
+
+<div class="section-title">🔥 الأكتر طلباً</div>
+<div id="top-items"></div>
+
+<div class="section-title">📋 تفاصيل الطلبات</div>
+<div class="orders-list" id="orders-list"></div>
+
+<script>
+const API   = 'https://potatoo-eight.vercel.app/api'
+const token = localStorage.getItem('pt_token')
+if (!token) window.location.replace('./login.html')
+
+// تحديد تاريخ النهارده تلقائي
+const today = new Date().toISOString().split('T')[0]
+document.getElementById('date-input').value = today
+
+async function loadReport() {
+  const date = document.getElementById('date-input').value
+  if (!date) return
+
+  try {
+    const res  = await fetch(`${API}/orders?date=${date}`, {
+      headers:{ Authorization:`Bearer ${token}` }
+    })
+    const json = await res.json()
+    if (!json.success) return
+    const orders = json.data || []
+
+    // Stats
+    const total     = orders.reduce((s,o) => s + (o.items||[]).reduce((ss,i)=>ss+(i.price||0)*i.qty,0), 0)
+    const cancelled = orders.filter(o=>o.status==='cancelled').length
+    const done      = orders.filter(o=>o.status==='done').length
+
+    document.getElementById('s-count').textContent     = orders.length
+    document.getElementById('s-total').textContent     = `${total} ج`
+    document.getElementById('s-cancelled').textContent = cancelled
+    document.getElementById('s-done').textContent      = done
+
+    // Top items
+    const itemMap = {}
+    orders.forEach(o => (o.items||[]).forEach(i => {
+      itemMap[i.nameAr] = (itemMap[i.nameAr]||0) + i.qty
+    }))
+    const sorted = Object.entries(itemMap).sort((a,b)=>b[1]-a[1]).slice(0,5)
+    document.getElementById('top-items').innerHTML = sorted.map(([name,qty]) =>
+      `<div class="top-item"><span class="top-name">${name}</span><span class="top-count">${qty}x</span></div>`
+    ).join('') || '<div style="padding:0 20px;color:var(--sub);font-size:13px;">لا توجد طلبات</div>'
+
+    // Orders list
+    document.getElementById('orders-list').innerHTML = orders.map(o => {
+      const total = (o.items||[]).reduce((s,i)=>s+(i.price||0)*i.qty,0)
+      const time  = new Date(o.createdAt).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})
+      const cancelledNote = o.status==='cancelled' ? `<div class="cancelled-note">✖ ملغي</div>` : ''
+      return `<div class="order-row">
+        <div class="order-row-top">
+          <span class="order-row-id">#${o._id.slice(-6).toUpperCase()}</span>
+          <span class="status-pill s-${o.status}">${{new:'جديد',in_progress:'جاري',done:'مكتمل',cancelled:'ملغي'}[o.status]}</span>
+          <span class="order-row-total">${total} ج</span>
+        </div>
+        <div class="order-row-name">👤 ${o.customerName} — 📞 ${o.customerPhone}</div>
+        <div class="order-row-time">⏰ ${time}</div>
+        ${cancelledNote}
+      </div>`
+    }).join('')
+  } catch(e) {
+    alert('فشل تحميل التقرير')
+  }
+}
+
+loadReport()
+</script>
+</body>
+</html>
