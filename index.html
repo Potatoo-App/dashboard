@@ -328,9 +328,12 @@
   <div class="logo-sm">🥔</div>
   <div class="topbar-title">الطلبات</div>
   <div class="topbar-actions">
-    <a class="reports-btn" href="./reports.html">📊 تقارير</a>
+    <!-- تقارير: يظهر للأدمن والفرع على حد سواء -->
+    <a class="reports-btn" id="reports-link" href="./reports.html">📊 تقارير</a>
+    <!-- محظور: يظهر للكل -->
     <button class="blacklist-btn" onclick="openBlacklist()">🚫 محظور</button>
-    <button class="branch-users-btn" onclick="openBranchUsers()" style="
+    <!-- يوزرز الفروع: للأدمن بس -->
+    <button class="branch-users-btn" id="branch-users-btn" onclick="openBranchUsers()" style="
       padding:6px 14px; border-radius:10px; border:1px solid rgba(48,209,88,0.3);
       background:rgba(48,209,88,0.1); color:var(--green);
       font-family:'Cairo',sans-serif; font-size:13px; font-weight:700; cursor:pointer;
@@ -429,7 +432,7 @@
 const API      = 'https://potatoo-eight.vercel.app/api'
 const token    = localStorage.getItem('pt_token')
 const ptUser   = JSON.parse(localStorage.getItem('pt_user') || '{}')
-const isBranch = ptUser.role === 'branch' || ptUser.branchId
+const isBranch = ptUser.role === 'branch' || !!ptUser.branchId
 
 if (!token) window.location.replace('./login.html')
 
@@ -529,14 +532,21 @@ async function deleteBranchUser(id) {
 // ============================================================
 async function loadBranches() {
   if (isBranch) {
-    document.querySelector('.branch-bar').style.display        = 'none'
-    document.querySelector('.branch-users-btn').style.display  = 'none'
+    // يوزر الفرع: أخفي فلتر الفروع وزر اليوزرز بس
+    document.querySelector('.branch-bar').style.display       = 'none'
+    document.getElementById('branch-users-btn').style.display = 'none'
+
+    // بادج اسم الفرع
     const badge = document.createElement('span')
     badge.className = 'branch-user-badge'
     badge.textContent = '🏪 ' + (ptUser.branchName || 'الفرع')
     document.querySelector('.topbar-actions').prepend(badge)
-    document.querySelector('.reports-btn').style.display   = 'none'
-    document.querySelector('.blacklist-btn').style.display = 'none'
+
+    // رابط التقارير يحمل branchId
+    const reportsLink = document.getElementById('reports-link')
+    if (ptUser.branchId) {
+      reportsLink.href = `./reports.html?branchId=${ptUser.branchId}`
+    }
     return
   }
 
