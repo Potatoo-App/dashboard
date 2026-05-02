@@ -163,21 +163,37 @@ async function doLogin() {
   btnText.innerHTML = '<div class="spinner"></div>'
 
   try {
-    const res  = await fetch(`${API}/auth/login`, {
+// جرب owner login الأول
+    let res  = await fetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phoneOrEmail: identity, password }),
     })
-    const json = await res.json()
+    let json = await res.json()
+
+    // لو فشل جرب branch user login
+    if (!json.success) {
+      res  = await fetch(`${API}/branch-users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: identity, password }),
+      })
+      json = await res.json()
+    }
 
     if (!json.success) {
       showErr(json.message || 'بيانات غير صحيحة')
       return
     }
 
-    // حفظ الـ token والبيانات
     localStorage.setItem('pt_token', json.token)
-    localStorage.setItem('pt_user',  JSON.stringify({ name: json.data?.name || identity }))
+    localStorage.setItem('pt_user',  JSON.stringify({
+      name:       json.data?.name || json.data?.username || identity,
+      role:       json.data?.role || 'owner',
+      branchId:   json.data?.branchId || null,
+      branchName: json.data?.branchName || null,
+    }))
+
     window.location.replace('./index.html?v=2')
   } catch (e) {
     showErr('تعذر الاتصال بالسيرفر، حاول مرة أخرى')
