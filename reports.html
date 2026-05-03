@@ -83,12 +83,33 @@
 </div>
 
 <div class="date-bar">
-  <input type="date" class="date-input" id="date-input"/>
-  <!-- فلتر الفروع للأدمن بس -->
-  <select class="branch-filter-select" id="branch-filter-sel" style="display:none;" onchange="loadReport()">
-    <option value="">كل الفروع</option>
-  </select>
-  <button class="load-btn" onclick="loadReport()">عرض</button>
+  <!-- نوع الفلتر -->
+  <div style="display:flex; gap:8px; width:100%; margin-bottom:8px;">
+    <button class="load-btn" id="mode-single" onclick="setMode('single')"
+      style="flex:1; background:var(--gold-grad); color:#000;">يوم واحد</button>
+    <button class="load-btn" id="mode-range" onclick="setMode('range')"
+      style="flex:1; background:var(--item); color:var(--sub); border:1px solid var(--border);">فترة زمنية</button>
+  </div>
+
+  <!-- يوم واحد -->
+  <div id="single-mode" style="display:flex; gap:8px; width:100%; align-items:center; flex-wrap:wrap;">
+    <input type="date" class="date-input" id="date-input" style="flex:1;"/>
+    <select class="branch-filter-select" id="branch-filter-sel-single" style="display:none;" onchange="loadReport()">
+      <option value="">كل الفروع</option>
+    </select>
+    <button class="load-btn" onclick="loadReport()">عرض</button>
+  </div>
+
+  <!-- فترة زمنية -->
+  <div id="range-mode" style="display:none; gap:8px; width:100%; align-items:center; flex-wrap:wrap;">
+    <input type="date" class="date-input" id="date-from" style="flex:1;" placeholder="من"/>
+    <span style="color:var(--sub); font-size:13px; font-weight:700;">—</span>
+    <input type="date" class="date-input" id="date-to" style="flex:1;" placeholder="إلى"/>
+    <select class="branch-filter-select" id="branch-filter-sel-range" style="display:none;" onchange="loadReport()">
+      <option value="">كل الفروع</option>
+    </select>
+    <button class="load-btn" onclick="loadReport()">عرض</button>
+  </div>
 </div>
 
 <div class="stats-grid">
@@ -158,14 +179,18 @@ async function loadBranchesFilter() {
     const json = await res.json()
     if (!json.success) return
     const branches = json.data?.branches || []
-    const sel = document.getElementById('branch-filter-sel')
-    branches.forEach(b => {
-      const opt = document.createElement('option')
-      opt.value = b._id
-      opt.textContent = b.arabicName || b.englishName
-      sel.appendChild(opt)
+
+    // حط الفروع في الاتنين selects
+    ;['branch-filter-sel-single', 'branch-filter-sel-range'].forEach(selId => {
+      const sel = document.getElementById(selId)
+      branches.forEach(b => {
+        const opt = document.createElement('option')
+        opt.value = b._id
+        opt.textContent = b.arabicName || b.englishName
+        sel.appendChild(opt)
+      })
+      sel.style.display = 'block'
     })
-    sel.style.display = 'block'
   } catch(e) {}
 }
 
