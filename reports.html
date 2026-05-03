@@ -93,11 +93,28 @@
 
 <div class="stats-grid">
   <div class="stat-card"><div class="stat-label">عدد الطلبات</div><div class="stat-val" id="s-count">—</div></div>
-  <div class="stat-card"><div class="stat-label">إجمالي المبيعات</div><div class="stat-val" id="s-total">—</div></div>
-  <div class="stat-card"><div class="stat-label">الملغي</div><div class="stat-val" id="s-cancelled">—</div></div>
   <div class="stat-card"><div class="stat-label">مكتمل</div><div class="stat-val" id="s-done">—</div></div>
+  <div class="stat-card"><div class="stat-label">ملغي</div><div class="stat-val" id="s-cancelled">—</div></div>
 </div>
 
+<!-- كارد المبيعات التفصيلي -->
+<div style="margin: 0 16px 16px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:10px;">
+  <div style="font-size:13px; font-weight:900; color:var(--sub); margin-bottom:4px;">💰 إجمالي المبيعات</div>
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-size:13px; color:var(--green); font-weight:700;">✔ المباع (مكتمل)</span>
+    <span style="font-size:16px; font-weight:900; color:var(--green);" id="s-total-done">— ج</span>
+  </div>
+  <div style="height:1px; background:var(--border);"></div>
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-size:13px; color:var(--red); font-weight:700;">✖ الملغي</span>
+    <span style="font-size:16px; font-weight:900; color:var(--red);" id="s-total-cancelled">— ج</span>
+  </div>
+  <div style="height:1px; background:var(--border);"></div>
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-size:13px; color:var(--gold-1); font-weight:700;">📦 الإجمالي الكلي</span>
+    <span style="font-size:20px; font-weight:900; background:var(--gold-grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent;" id="s-total-all">— ج</span>
+  </div>
+</div>
 <div class="section-title">🔥 الأكتر طلباً</div>
 <div id="top-items"></div>
 
@@ -156,45 +173,51 @@ async function loadReport() {
   const date = document.getElementById('date-input').value
   if (!date) return
 
-  // حدد الـ branchId: فرع → ثابت، أدمن → من الفلتر
   const selectedBranch = fixedBranchId || document.getElementById('branch-filter-sel').value || ''
 
   try {
     let url = `${API}/orders?date=${date}`
     if (selectedBranch) url += `&branchId=${selectedBranch}`
 
-    const res  = await fetch(url, {
-      headers:{ Authorization:`Bearer ${token}` }
-    })
+    const res  = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
     const json = await res.json()
     if (!json.success) return
     const orders = json.data || []
 
     // Stats
-    const total     = orders.reduce((s,o) => s + (o.items||[]).reduce((ss,i)=>ss+(i.price||0)*i.qty,0), 0)
-    const cancelled = orders.filter(o=>o.status==='cancelled').length
-    const done      = orders.filter(o=>o.status==='done').length
+    const doneOrders      = orders.filter(o => o.status === 'done')
+    const cancelledOrders = orders.filter(o => o.status === 'cancelled')
 
-    document.getElementById('s-count').textContent     = orders.length
-    document.getElementById('s-total').textContent     = `${total} ج`
-    document.getElementById('s-cancelled').textContent = cancelled
-    document.getElementById('s-done').textContent      = done
+    const totalDone      = doneOrders.reduce((s,o) => s + (o.items||[]).reduce((ss,i) => ss+(i.price||0)*i.qty, 0), 0)
+    const totalCancelled = cancelledOrders.reduce((s,o) => s + (o.items||[]).reduce((ss,i) => ss+(i.price||0)*i.qty, 0), 0)
+    const totalAll       = totalDone + totalCancelled
+
+    document.getElementById('s-count').textContent         = orders.length
+    document.getElementById('s-done').textContent          = doneOrders.length
+    document.getElementById('s-cancelled').textContent     = cancelledOrders.length
+    document.getElementById('s-total-done').textContent      = `${totalDone} ج`
+    document.getElementById('s-total-cancelled').textContent = `${totalCancelled} ج`
+    document.getElementById('s-total-all').textContent       = `${totalAll} ج`
 
     // Top items
     const itemMap = {}
     orders.forEach(o => (o.items||[]).forEach(i => {
       itemMap[i.nameAr] = (itemMap[i.nameAr]||0) + i.qty
     }))
-    const sorted = Object.entries(itemMap).sort((a,b)=>b[1]-a[1]).slice(0,5)
+    const sorted = Object.entries(itemMap).sort((a,b) => b[1]-a[1]).slice(0,5)
     document.getElementById('top-items').innerHTML = sorted.map(([name,qty]) =>
       `<div class="top-item"><span class="top-name">${name}</span><span class="top-count">${qty}x</span></div>`
     ).join('') || '<div style="padding:0 20px;color:var(--sub);font-size:13px;">لا توجد طلبات</div>'
 
     // Orders list
     document.getElementById('orders-list').innerHTML = orders.map(o => {
-      const oTotal = (o.items||[]).reduce((s,i)=>s+(i.price||0)*i.qty,0)
-      const time   = new Date(o.createdAt).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})
-      const cancelledNote = o.status==='cancelled' ? `<div class="cancelled-note">✖ ملغي</div>` : ''
+      const oTotal = (o.items||[]).reduce((s,i) => s+(i.price||0)*i.qty, 0)
+      const time   = new Date(o.createdAt).toLocaleTimeString('ar-EG', { hour:'2-digit', minute:'2-digit' })
+      const cancelNote = o.status === 'cancelled' && o.cancelReason
+        ? `<div class="cancelled-note">✖ سبب الإلغاء: ${o.cancelReason}</div>`
+        : o.status === 'cancelled'
+        ? `<div class="cancelled-note">✖ ملغي</div>`
+        : ''
       return `<div class="order-row">
         <div class="order-row-top">
           <span class="order-row-id">#${o._id.slice(-6).toUpperCase()}</span>
@@ -203,7 +226,7 @@ async function loadReport() {
         </div>
         <div class="order-row-name">👤 ${o.customerName} — 📞 ${o.customerPhone}</div>
         <div class="order-row-time">⏰ ${time}</div>
-        ${cancelledNote}
+        ${cancelNote}
       </div>`
     }).join('')
   } catch(e) {
