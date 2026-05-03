@@ -966,24 +966,24 @@ async function confirmCancel() {
 async function changeStatus(orderId, status, cancelReason) {
   const card = document.getElementById('card-' + orderId)
 
-  // شيل الزر اللي اتضغط وحط عليه loading
+  // دور على الزر اللي اتضغط عليه
   let pressedBtn = null
   if (card) {
     card.querySelectorAll('button').forEach(b => {
-      if (!b.disabled) {
-        // الزر اللي اتضغط عليه هو اللي عنده onclick بيحتوي على status ده
-        if (b.getAttribute('onclick')?.includes(status) || b.getAttribute('onclick')?.includes(orderId)) {
-          pressedBtn = b
-        }
+      const oc = b.getAttribute('onclick') || ''
+      if (oc.includes(`'${status}'`) && oc.includes(`'${orderId}'`)) {
+        pressedBtn = b
       }
     })
+
     // disable كل الأزرار
     card.querySelectorAll('button').forEach(b => b.disabled = true)
-    // حط loading على الزر اللي اتضغط
+
+    // spinner على الزر اللي اتضغط بس
     if (pressedBtn) {
-      pressedBtn._originalText = pressedBtn.innerHTML
+      pressedBtn._originalHTML = pressedBtn.innerHTML
       pressedBtn.innerHTML = `<span style="
-        display:inline-block; width:14px; height:14px;
+        display:inline-block; width:13px; height:13px;
         border:2px solid currentColor; border-top-color:transparent;
         border-radius:50%; animation:spin 0.6s linear infinite;
         vertical-align:middle;
@@ -1006,9 +1006,7 @@ async function changeStatus(orderId, status, cancelReason) {
       alert(json.message || 'فشل تغيير الحالة')
       if (card) {
         card.querySelectorAll('button').forEach(b => b.disabled = false)
-        if (pressedBtn && pressedBtn._originalText) {
-          pressedBtn.innerHTML = pressedBtn._originalText
-        }
+        if (pressedBtn) pressedBtn.innerHTML = pressedBtn._originalHTML
       }
       return
     }
@@ -1028,9 +1026,7 @@ async function changeStatus(orderId, status, cancelReason) {
     alert('فشل الاتصال بالسيرفر')
     if (card) {
       card.querySelectorAll('button').forEach(b => b.disabled = false)
-      if (pressedBtn && pressedBtn._originalText) {
-        pressedBtn.innerHTML = pressedBtn._originalText
-      }
+      if (pressedBtn) pressedBtn.innerHTML = pressedBtn._originalHTML
     }
   }
 }
