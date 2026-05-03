@@ -319,6 +319,44 @@
       animation:pulse 2s ease-in-out infinite;
     }
     @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+    /* ===== CANCEL REASON MODAL ===== */
+    #cancel-modal {
+      display:none; position:fixed; inset:0; z-index:300;
+      background:rgba(0,0,0,0.85); backdrop-filter:blur(8px);
+      align-items:center; justify-content:center; padding:20px;
+    }
+    #cancel-modal.open { display:flex; }
+    .cancel-box {
+      background:var(--card); border:1px solid rgba(255,59,48,0.3);
+      border-radius:24px; padding:28px 24px; width:100%; max-width:380px;
+    }
+    .cancel-title { font-size:17px; font-weight:900; margin-bottom:6px; color:var(--red); }
+    .cancel-sub   { font-size:13px; color:var(--sub); margin-bottom:16px; }
+    .cancel-input {
+      width:100%; padding:11px 14px; border-radius:12px;
+      border:1px solid var(--border); background:var(--item); color:var(--text);
+      font-family:'Cairo',sans-serif; font-size:14px; margin-bottom:16px;
+      outline:none; resize:none; min-height:80px; transition:border-color 0.2s;
+    }
+    .cancel-input:focus { border-color:var(--red); }
+    .cancel-actions { display:flex; gap:10px; }
+    .cancel-confirm {
+      flex:1; height:44px; border-radius:14px; border:none;
+      background:rgba(255,59,48,0.9); color:#fff;
+      font-family:'Cairo',sans-serif; font-size:15px; font-weight:900; cursor:pointer;
+    }
+    .cancel-confirm:disabled { opacity:0.4; cursor:not-allowed; }
+    .cancel-back-btn {
+      height:44px; padding:0 18px; border-radius:14px;
+      border:1px solid var(--border); background:transparent; color:var(--sub);
+      font-family:'Cairo',sans-serif; font-size:14px; font-weight:700; cursor:pointer;
+    }
+    .cancel-reason-row {
+      margin: 0 16px 10px; padding: 8px 14px;
+      background: rgba(255,59,48,0.08); border: 1px solid rgba(255,59,48,0.2);
+      border-radius: 10px; font-size:12px; color:var(--red); font-weight:700;
+    }
   </style>
 </head>
 <body>
@@ -391,6 +429,19 @@
     <button class="bl-add-btn" onclick="addToBlacklist()">+ إضافة للحظر</button>
     <div class="bl-list" id="bl-list"></div>
     <button class="bl-close" onclick="closeBlacklist()">إغلاق</button>
+  </div>
+</div>
+
+<!-- CANCEL REASON MODAL -->
+<div id="cancel-modal">
+  <div class="cancel-box">
+    <div class="cancel-title">✖ إلغاء الطلب</div>
+    <div class="cancel-sub">من فضلك اكتب سبب الإلغاء</div>
+    <textarea class="cancel-input" id="cancel-reason-input" placeholder="سبب الإلغاء..."></textarea>
+    <div class="cancel-actions">
+      <button class="cancel-confirm" id="cancel-confirm-btn" onclick="confirmCancel()">تأكيد الإلغاء</button>
+      <button class="cancel-back-btn" onclick="closeCancelModal()">رجوع</button>
+    </div>
   </div>
 </div>
 
@@ -615,6 +666,9 @@ function renderOrders(orders) {
   grid.innerHTML = orders.map(o => buildCard(o)).join('')
 }
 
+// ترتيب الحالات: جديد → جاري → تم   |   إلغاء: من جديد أو جاري فقط
+const STATUS_ORDER = ['new', 'in_progress', 'done']
+
 function buildCard(o) {
   const branchName = o.branch?.arabicName || o.branch?.englishName || '—'
   const time       = formatTime(o.createdAt)
@@ -640,22 +694,92 @@ function buildCard(o) {
        </div>`
     : ''
 
-  const actionBtns = ['new','in_progress','done','cancelled'].map(st => {
-    const isActive = o.status === st
-    return `<button
-      class="status-action-btn btn-${st} ${isActive ? 'active-btn' : ''}"
-      onclick="changeStatus('${o._id}','${st}',this)"
-      ${isActive ? 'disabled' : ''}>
-      ${STATUS_LABELS[st]}
-    </button>`
-  }).join('')
-
   const blockedBanner = o.isBlocked
     ? `<div class="blocked-banner">🚫 رقم محظور — ${o.customerPhone}</div>`
     : ''
 
+  const cancelReasonHtml = o.cancelReason
+    ? `<div class="cancel-reason-row">✖ سبب الإلغاء: ${o.cancelReason}</div>`
+    : ''
+
+  // ===== منطق الأزرار =====
+  // للأدمن: كل الأزرار متاحة كما كانت
+  // لليوزر: قواعد مقيدة
+  let actionsHtml = ''
+
+  if (!isBranch) {
+    // أدمن — كل الأزرار عادية
+    const actionBtns = ['new','in_progress','done','cancelled'].map(st => {
+      const isActive = o.status === st
+      return `<button
+        class="status-action-btn btn-${st} ${isActive ? 'active-btn' : ''}"
+        onclick="changeStatus('${o._id}','${st}')"
+        ${isActive ? 'disabled' : ''}>
+        ${STATUS_LABELS[st]}
+      </button>`
+    }).join('')
+    actionsHtml = `
+      ${actionBtns}
+      <button class="print-btn" onclick="printOrder('${o._id}')" title="طباعة">🖨️</button>
+      <button class="block-btn" onclick="blockPhoneQuick('${o.customerPhone}')" title="حظر الرقم">🚫</button>
+      <button class="delete-btn" onclick="deleteOrder('${o._id}')" title="حذف">🗑</button>`
+  } else {
+    // يوزر فرع — منطق مقيد
+    const curIdx = STATUS_ORDER.indexOf(o.status)
+    const isCancelled = o.status === 'cancelled'
+    const isDone = o.status === 'done'
+
+    // زر الخطوة التالية فقط
+    let nextBtn = ''
+    if (!isCancelled && !isDone && curIdx !== -1 && curIdx < STATUS_ORDER.length - 1) {
+      const nextStatus = STATUS_ORDER[curIdx + 1]
+      const nextLabel = { in_progress: '⏳ بدء التنفيذ', done: '✔ تم' }[nextStatus] || nextStatus
+      nextBtn = `<button class="status-action-btn btn-${nextStatus} active-btn"
+        style="flex:2;"
+        onclick="changeStatus('${o._id}','${nextStatus}')">
+        ${nextLabel}
+      </button>`
+    }
+
+    // زر الإلغاء: في جاري أو تم
+    const canCancel = o.status === 'in_progress' || o.status === 'done'
+    const cancelBtn = canCancel
+      ? `<button class="status-action-btn btn-cancelled active-btn"
+          onclick="openCancelModal('${o._id}')">✖ إلغاء</button>`
+      : ''
+
+    // حذف: في جديد فقط
+    const deleteBtn = o.status === 'new'
+      ? `<button class="delete-btn" onclick="deleteOrder('${o._id}')" title="حذف">🗑</button>`
+      : ''
+
+    // طباعة: في جاري أو تم فقط
+    const printBtn = (o.status === 'in_progress' || o.status === 'done')
+      ? `<button class="print-btn" onclick="printOrder('${o._id}')" title="طباعة">🖨️</button>`
+      : ''
+
+    // حظر
+    const blockBtn = `<button class="block-btn" onclick="blockPhoneQuick('${o.customerPhone}')" title="حظر الرقم">🚫</button>`
+
+    // لو ملغي: badge بس | لو تم: إلغاء + طباعة + حظر
+    if (isCancelled) {
+      actionsHtml = `
+        <button class="status-action-btn btn-cancelled active-btn" disabled style="flex:2;">✖ ملغي</button>
+        ${blockBtn}`
+    } else if (isDone) {
+      actionsHtml = `
+        <button class="status-action-btn btn-done active-btn" disabled style="flex:1;">✔ تم</button>
+        ${cancelBtn}
+        ${printBtn}
+        ${blockBtn}`
+    } else {
+      actionsHtml = `${nextBtn}${cancelBtn}${deleteBtn}${printBtn}${blockBtn}`
+    }
+  }
+
   return `<div class="order-card status-${o.status} ${o.isBlocked ? 'is-blocked' : ''}" id="card-${o._id}">
     ${blockedBanner}
+    ${cancelReasonHtml}
     <div class="card-header">
       <div class="status-dot"></div>
       <div class="order-num">#${shortId}</div>
@@ -677,10 +801,7 @@ function buildCard(o) {
     ${totalHtml}
     <div class="card-divider"></div>
     <div class="card-actions">
-      ${actionBtns}
-      <button class="print-btn" onclick="printOrder('${o._id}')" title="طباعة">🖨️</button>
-      <button class="block-btn" onclick="blockPhoneQuick('${o.customerPhone}')" title="حظر الرقم">🚫</button>
-      <button class="delete-btn" onclick="deleteOrder('${o._id}')" title="حذف">🗑</button>
+      ${actionsHtml}
     </div>
   </div>`
 }
@@ -815,27 +936,58 @@ async function blockPhoneQuick(phone) {
 // ============================================================
 // CHANGE STATUS
 // ============================================================
-async function changeStatus(orderId, status, btn) {
-  const card = document.getElementById('card-' + orderId)
-  if (!card) return
+// pending cancel state
+let pendingCancelOrderId = null
 
-  card.className = `order-card status-${status}`
-  card.querySelectorAll('.status-action-btn').forEach(b => {
-    const isCurrent = b.classList.contains('btn-' + status)
-    b.classList.toggle('active-btn', isCurrent)
-    b.disabled = isCurrent
-  })
+function openCancelModal(orderId) {
+  pendingCancelOrderId = orderId
+  document.getElementById('cancel-reason-input').value = ''
+  document.getElementById('cancel-modal').classList.add('open')
+  setTimeout(() => document.getElementById('cancel-reason-input').focus(), 100)
+}
+
+function closeCancelModal() {
+  pendingCancelOrderId = null
+  document.getElementById('cancel-modal').classList.remove('open')
+}
+
+async function confirmCancel() {
+  const reason = document.getElementById('cancel-reason-input').value.trim()
+  if (!reason) {
+    document.getElementById('cancel-reason-input').style.borderColor = 'var(--red)'
+    return
+  }
+  const btn = document.getElementById('cancel-confirm-btn')
+  btn.disabled = true
+  await changeStatus(pendingCancelOrderId, 'cancelled', reason)
+  closeCancelModal()
+  btn.disabled = false
+}
+
+async function changeStatus(orderId, status, cancelReason) {
+  const card = document.getElementById('card-' + orderId)
 
   try {
+    const body = { status }
+    if (cancelReason) body.cancelReason = cancelReason
+
     const res = await fetch(`${API}/orders/${orderId}/status`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify(body),
     })
     const json = await res.json()
     if (!json.success) throw new Error()
+
     const idx = allOrders.findIndex(o => o._id === orderId)
-    if (idx !== -1) allOrders[idx].status = status
+    if (idx !== -1) {
+      allOrders[idx].status = status
+      if (cancelReason) allOrders[idx].cancelReason = cancelReason
+    }
+    // أعد رسم الكارت بعد تغيير الحالة
+    if (card && idx !== -1) {
+      card.outerHTML = buildCard(allOrders[idx])
+    }
   } catch(e) {
     loadOrders()
   }
