@@ -767,12 +767,11 @@ function buildCard(o) {
         <button class="status-action-btn btn-cancelled active-btn" disabled style="flex:2;">✖ ملغي</button>
         ${blockBtn}`
     } else if (isDone) {
-      actionsHtml = `
-        <button class="status-action-btn btn-done active-btn" disabled style="flex:1;">✔ تم</button>
-        ${cancelBtn}
-        ${printBtn}
-        ${blockBtn}`
-    } else {
+  actionsHtml = `
+    ${cancelBtn}
+    ${printBtn}
+    ${blockBtn}`
+} else {
       actionsHtml = `${nextBtn}${cancelBtn}${deleteBtn}${printBtn}${blockBtn}`
     }
   }
@@ -965,10 +964,31 @@ async function confirmCancel() {
 }
 
 async function changeStatus(orderId, status, cancelReason) {
-  // منع التكرار — disable كل أزرار الكارد
   const card = document.getElementById('card-' + orderId)
+
+  // شيل الزر اللي اتضغط وحط عليه loading
+  let pressedBtn = null
   if (card) {
+    card.querySelectorAll('button').forEach(b => {
+      if (!b.disabled) {
+        // الزر اللي اتضغط عليه هو اللي عنده onclick بيحتوي على status ده
+        if (b.getAttribute('onclick')?.includes(status) || b.getAttribute('onclick')?.includes(orderId)) {
+          pressedBtn = b
+        }
+      }
+    })
+    // disable كل الأزرار
     card.querySelectorAll('button').forEach(b => b.disabled = true)
+    // حط loading على الزر اللي اتضغط
+    if (pressedBtn) {
+      pressedBtn._originalText = pressedBtn.innerHTML
+      pressedBtn.innerHTML = `<span style="
+        display:inline-block; width:14px; height:14px;
+        border:2px solid currentColor; border-top-color:transparent;
+        border-radius:50%; animation:spin 0.6s linear infinite;
+        vertical-align:middle;
+      "></span>`
+    }
   }
 
   try {
@@ -984,8 +1004,12 @@ async function changeStatus(orderId, status, cancelReason) {
 
     if (!json.success) {
       alert(json.message || 'فشل تغيير الحالة')
-      // أعد تفعيل الأزرار لو فشل
-      if (card) card.querySelectorAll('button').forEach(b => b.disabled = false)
+      if (card) {
+        card.querySelectorAll('button').forEach(b => b.disabled = false)
+        if (pressedBtn && pressedBtn._originalText) {
+          pressedBtn.innerHTML = pressedBtn._originalText
+        }
+      }
       return
     }
 
@@ -1002,7 +1026,12 @@ async function changeStatus(orderId, status, cancelReason) {
     }
   } catch(e) {
     alert('فشل الاتصال بالسيرفر')
-    if (card) card.querySelectorAll('button').forEach(b => b.disabled = false)
+    if (card) {
+      card.querySelectorAll('button').forEach(b => b.disabled = false)
+      if (pressedBtn && pressedBtn._originalText) {
+        pressedBtn.innerHTML = pressedBtn._originalText
+      }
+    }
   }
 }
 
