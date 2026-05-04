@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8"/>
@@ -16,7 +16,6 @@
     *{margin:0;padding:0;box-sizing:border-box;}
     body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;min-height:100vh;}
 
-    /* TOPBAR */
     #topbar{
       position:sticky;top:0;z-index:50;
       background:rgba(14,14,14,0.95);backdrop-filter:blur(12px);
@@ -33,13 +32,9 @@
       display:flex;align-items:center;}
     .back-btn:hover{border-color:var(--gold-1);color:var(--gold-1);}
 
-    /* CONTENT */
     .content{padding:24px 20px 100px;max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:16px;}
 
-    /* CONTROLS CARD */
-    .controls-card{
-      background:var(--card);border:1px solid var(--border);border-radius:24px;padding:20px;
-    }
+    .controls-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:20px;}
     .controls-title{font-size:13px;font-weight:900;color:var(--sub);margin-bottom:14px;}
     .controls-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
 
@@ -48,19 +43,17 @@
     .field-group select{
       padding:10px 14px;border-radius:12px;border:1px solid var(--border);
       background:var(--item);color:var(--text);
-      font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;
-      width:100%;
+      font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;width:100%;
     }
     .field-group select:focus{outline:none;border-color:var(--gold-1);}
 
-    .radius-group{display:flex;flex-direction:column;gap:6px;min-width:120px;}
+    .radius-group{display:flex;flex-direction:column;gap:6px;min-width:140px;}
     .radius-group label{font-size:12px;font-weight:700;color:var(--sub);}
     .radius-row{display:flex;gap:6px;}
     .radius-btn{
       flex:1;height:38px;border-radius:10px;border:1px solid var(--border);
       background:var(--item);color:var(--sub);
-      font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;
-      cursor:pointer;transition:all 0.2s;
+      font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;
     }
     .radius-btn.active{background:rgba(255,204,68,0.15);border-color:rgba(255,204,68,0.4);color:var(--gold-1);}
 
@@ -68,34 +61,23 @@
       height:42px;padding:0 24px;border-radius:14px;border:none;
       background:var(--gold-grad);color:#000;
       font-family:'Cairo',sans-serif;font-size:14px;font-weight:900;
-      cursor:pointer;transition:opacity 0.2s,transform 0.15s;
-      white-space:nowrap;flex-shrink:0;align-self:flex-end;
+      cursor:pointer;white-space:nowrap;flex-shrink:0;align-self:flex-end;
       display:flex;align-items:center;gap:8px;
     }
-    .search-btn:hover{opacity:0.9;}
-    .search-btn:active{transform:scale(0.97);}
     .search-btn:disabled{opacity:0.5;cursor:not-allowed;}
 
-    /* NO BRANCH WARNING */
-    .no-coords-warn{
-      background:rgba(255,149,0,0.1);border:1px solid rgba(255,149,0,0.3);
-      border-radius:14px;padding:12px 16px;
-      font-size:13px;font-weight:700;color:var(--orange);
-      display:none;
-    }
-    .no-coords-warn.show{display:block;}
+    .warn-box{background:rgba(255,149,0,0.1);border:1px solid rgba(255,149,0,0.3);
+      border-radius:14px;padding:12px 16px;font-size:13px;font-weight:700;color:var(--orange);display:none;}
+    .warn-box.show{display:block;}
+    .err-box{background:rgba(255,59,48,0.1);border:1px solid rgba(255,59,48,0.3);
+      border-radius:14px;padding:12px 16px;font-size:13px;font-weight:700;color:var(--red);display:none;}
+    .err-box.show{display:block;}
 
-    /* STATS ROW */
     .stats-row{display:flex;gap:10px;}
-    .stat-pill{
-      flex:1;background:var(--card);border:1px solid var(--border);border-radius:16px;
-      padding:14px 16px;text-align:center;
-    }
-    .stat-pill-val{font-size:22px;font-weight:900;background:var(--gold-grad);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .stat-pill{flex:1;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;text-align:center;}
+    .stat-pill-val{font-size:22px;font-weight:900;background:var(--gold-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
     .stat-pill-label{font-size:11px;color:var(--sub);font-weight:700;margin-top:2px;}
 
-    /* DRIVER CARD */
     .drivers-list{display:flex;flex-direction:column;gap:10px;}
     .driver-card{
       background:var(--card);border:1px solid var(--border);border-radius:20px;
@@ -104,44 +86,32 @@
     }
     @keyframes cardIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
-    .driver-rank{
-      width:36px;height:36px;border-radius:12px;background:var(--gold-grad);
-      display:flex;align-items:center;justify-content:center;
-      font-size:14px;font-weight:900;color:#000;flex-shrink:0;
-    }
-    .driver-rank.rank-1{background:var(--gold-grad);}
+    .driver-rank{width:36px;height:36px;border-radius:12px;background:var(--gold-grad);
+      display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#000;flex-shrink:0;}
     .driver-rank.rank-2{background:linear-gradient(180deg,#C0C0C0,#808080);color:#fff;}
     .driver-rank.rank-3{background:linear-gradient(180deg,#CD7F32,#8B4513);color:#fff;}
+    .driver-rank.rank-other{background:var(--item);color:var(--sub);border:1px solid var(--border);}
 
     .driver-info{flex:1;min-width:0;}
     .driver-name{font-size:15px;font-weight:900;margin-bottom:4px;}
     .driver-phones{display:flex;flex-wrap:wrap;gap:6px;}
-    .phone-chip{
-      padding:3px 10px;border-radius:20px;
-      background:rgba(255,204,68,0.1);border:1px solid rgba(255,204,68,0.2);
-      color:var(--gold-1);font-size:12px;font-weight:700;direction:ltr;
-    }
+    .phone-chip{padding:3px 10px;border-radius:20px;background:rgba(255,204,68,0.1);
+      border:1px solid rgba(255,204,68,0.2);color:var(--gold-1);font-size:12px;font-weight:700;direction:ltr;}
     .phone-chip a{color:inherit;text-decoration:none;}
     .phone-chip a:hover{text-decoration:underline;}
 
-    .driver-distance{
-      display:flex;flex-direction:column;align-items:center;flex-shrink:0;
-    }
+    .driver-distance{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
     .distance-val{font-size:18px;font-weight:900;color:var(--green);}
     .distance-val.far{color:var(--orange);}
     .distance-val.very-far{color:var(--red);}
     .distance-unit{font-size:11px;color:var(--sub);font-weight:700;}
 
-    /* EMPTY */
-    .empty-state{
-      display:flex;flex-direction:column;align-items:center;
-      justify-content:center;padding:48px 20px;gap:12px;text-align:center;
-    }
+    .empty-state{display:flex;flex-direction:column;align-items:center;
+      justify-content:center;padding:48px 20px;gap:12px;text-align:center;}
     .empty-icon{font-size:52px;}
     .empty-title{font-size:17px;font-weight:900;}
     .empty-sub{font-size:13px;color:var(--sub);}
 
-    /* LOADER */
     .loader-wrap{display:flex;flex-direction:column;align-items:center;
       justify-content:center;padding:48px;gap:14px;}
     .ld-spinner{width:36px;height:36px;border:3px solid var(--border);
@@ -149,11 +119,8 @@
     @keyframes spin{to{transform:rotate(360deg);}}
     .ld-text{font-size:13px;color:var(--sub);font-weight:700;}
 
-    /* INITIAL STATE */
-    .initial-state{
-      display:flex;flex-direction:column;align-items:center;
-      justify-content:center;padding:48px 20px;gap:12px;text-align:center;
-    }
+    .initial-state{display:flex;flex-direction:column;align-items:center;
+      justify-content:center;padding:48px 20px;gap:12px;text-align:center;}
     .initial-icon{font-size:52px;}
     .initial-title{font-size:16px;font-weight:900;color:var(--sub);}
   </style>
@@ -168,18 +135,15 @@
 
 <div class="content">
 
-  <!-- CONTROLS -->
   <div class="controls-card">
     <div class="controls-title">🔍 بحث عن دليفري قريب</div>
     <div class="controls-row">
-
       <div class="field-group">
         <label>الفرع</label>
-        <select id="branch-select">
-          <option value="">اختر الفرع...</option>
+        <select id="branch-select" onchange="onBranchChange()">
+          <option value="">جاري التحميل...</option>
         </select>
       </div>
-
       <div class="radius-group">
         <label>نطاق البحث</label>
         <div class="radius-row">
@@ -188,20 +152,15 @@
           <button class="radius-btn"        data-r="20" onclick="setRadius(this)">20 كم</button>
         </div>
       </div>
-
       <button class="search-btn" id="search-btn" onclick="doSearch()">
         <span id="search-btn-text">🛵 عرض</span>
       </button>
-
     </div>
   </div>
 
-  <!-- NO COORDS WARNING -->
-  <div class="no-coords-warn" id="no-coords-warn">
-    ⚠️ الفرع المختار ليس له إحداثيات مسجلة — يرجى تحديث بيانات الفرع وإضافة رابط Google Maps
-  </div>
+  <div class="warn-box" id="warn-box"></div>
+  <div class="err-box"  id="err-box"></div>
 
-  <!-- STATS -->
   <div class="stats-row" id="stats-row" style="display:none;">
     <div class="stat-pill">
       <div class="stat-pill-val" id="stat-count">0</div>
@@ -217,7 +176,6 @@
     </div>
   </div>
 
-  <!-- RESULTS -->
   <div id="results-wrap">
     <div class="initial-state">
       <div class="initial-icon">🛵</div>
@@ -228,68 +186,98 @@
 </div>
 
 <script>
-const API    = 'https://potatoo-eight.vercel.app/api'
-const token  = localStorage.getItem('pt_token')
+const API   = 'https://potatoo-eight.vercel.app/api'
+const token = localStorage.getItem('pt_token')
 if (!token) window.location.replace('./login.html')
 
 let selectedRadius = 5
 let branches       = []
 
-// ============================================================
-// INIT
-// ============================================================
-async function init() {
-  await loadBranches()
+function showWarn(msg) {
+  const el = document.getElementById('warn-box')
+  el.textContent = msg
+  el.classList.toggle('show', !!msg)
+}
+function showErr(msg) {
+  const el = document.getElementById('err-box')
+  el.textContent = msg
+  el.classList.toggle('show', !!msg)
 }
 
 // ============================================================
 // LOAD BRANCHES
 // ============================================================
 async function loadBranches() {
+  const sel = document.getElementById('branch-select')
   try {
     const res  = await fetch(`${API}/restaurant/user-restaurants`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (res.status === 401) { doLogout(); return }
-    const json = await res.json()
-    if (!json.success) return
 
-    branches = json.data?.branches || []
-    const sel = document.getElementById('branch-select')
+    const json = await res.json()
+
+    if (!json.success) {
+      sel.innerHTML = '<option value="">فشل تحميل الفروع</option>'
+      showErr('فشل تحميل الفروع: ' + (json.message || ''))
+      return
+    }
+
+    // handle different response shapes
+    const raw = json.data
+    if (Array.isArray(raw)) {
+      branches = raw
+    } else if (raw?.branches && Array.isArray(raw.branches)) {
+      branches = raw.branches
+    } else if (raw?.branch) {
+      branches = [raw.branch]
+    } else {
+      branches = []
+    }
+
+    sel.innerHTML = '<option value="">اختر الفرع...</option>'
+
+    if (!branches.length) {
+      sel.innerHTML = '<option value="">لا يوجد فروع</option>'
+      showWarn('لا يوجد فروع مسجلة في حسابك')
+      return
+    }
 
     branches.forEach(b => {
       const opt = document.createElement('option')
       opt.value = b._id
-      opt.textContent = b.arabicName || b.englishName
+      opt.textContent = b.arabicName || b.englishName || b._id
       sel.appendChild(opt)
     })
 
-    // لو فرع واحد بس اختاره تلقائياً
     if (branches.length === 1) {
       sel.value = branches[0]._id
-      checkBranchCoords(branches[0])
+      onBranchChange()
     }
 
   } catch(e) {
-    console.error(e)
+    sel.innerHTML = '<option value="">خطأ في التحميل</option>'
+    showErr('تعذر تحميل الفروع: ' + e.message)
   }
 }
 
 // ============================================================
-// CHECK COORDS
+// ON BRANCH CHANGE
 // ============================================================
-function checkBranchCoords(branch) {
-  const warn = document.getElementById('no-coords-warn')
+function onBranchChange() {
+  showWarn('')
+  showErr('')
+  const branchId = document.getElementById('branch-select').value
+  if (!branchId) return
+  const branch = branches.find(b => b._id === branchId)
+  if (!branch) return
   const coords = branch?.location?.coordinates
-  const hasCoords = coords && (coords[0] !== 0 || coords[1] !== 0)
-  warn.classList.toggle('show', !hasCoords)
+  const hasCoords = Array.isArray(coords) && coords.length === 2 &&
+                    (coords[0] !== 0 || coords[1] !== 0)
+  if (!hasCoords) {
+    showWarn('⚠️ هذا الفرع ليس له إحداثيات — يرجى إضافة رابط Google Maps من الداشبورد')
+  }
 }
-
-document.getElementById('branch-select').addEventListener('change', function() {
-  const branch = branches.find(b => b._id === this.value)
-  if (branch) checkBranchCoords(branch)
-  else document.getElementById('no-coords-warn').classList.remove('show')
-})
 
 // ============================================================
 // SET RADIUS
@@ -304,36 +292,35 @@ function setRadius(el) {
 // SEARCH
 // ============================================================
 async function doSearch() {
+  showWarn('')
+  showErr('')
+
   const branchId = document.getElementById('branch-select').value
-  if (!branchId) {
-    alert('اختر الفرع أولاً')
-    return
-  }
+  if (!branchId) { showWarn('اختر الفرع أولاً'); return }
 
   const branch = branches.find(b => b._id === branchId)
-  if (!branch) return
+  if (!branch) { showErr('الفرع غير موجود'); return }
 
-  // استخراج الإحداثيات من location.coordinates [lng, lat]
   const coords = branch?.location?.coordinates
-  if (!coords || (coords[0] === 0 && coords[1] === 0)) {
-    document.getElementById('no-coords-warn').classList.add('show')
+  if (!Array.isArray(coords) || coords.length < 2 || (coords[0] === 0 && coords[1] === 0)) {
+    showWarn('⚠️ هذا الفرع ليس له إحداثيات — يرجى إضافة رابط Google Maps للفرع من الداشبورد')
     return
   }
 
+  // GeoJSON: [lng, lat]
   const lng = coords[0]
   const lat = coords[1]
 
-  // loading
   const btn     = document.getElementById('search-btn')
   const btnText = document.getElementById('search-btn-text')
   btn.disabled  = true
-  btnText.innerHTML = '<div style="width:16px;height:16px;border:2px solid rgba(0,0,0,0.3);border-top-color:#000;border-radius:50%;animation:spin 0.6s linear infinite;"></div>'
+  btnText.innerHTML = '<div style="width:16px;height:16px;border:2px solid rgba(0,0,0,0.3);border-top-color:#000;border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block;vertical-align:middle;"></div>'
 
   document.getElementById('stats-row').style.display = 'none'
   document.getElementById('results-wrap').innerHTML = `
     <div class="loader-wrap">
       <div class="ld-spinner"></div>
-      <div class="ld-text">جاري البحث عن الدليفري القريبين...</div>
+      <div class="ld-text">جاري البحث...</div>
     </div>`
 
   try {
@@ -341,28 +328,19 @@ async function doSearch() {
       `${API}/delivery/nearby?lat=${lat}&lng=${lng}&radius=${selectedRadius}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
-    if (res.status === 401) { doLogout(); return }
     const json = await res.json()
 
     if (!json.success) {
-      document.getElementById('results-wrap').innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">⚠️</div>
-          <div class="empty-title">فشل التحميل</div>
-          <div class="empty-sub">${json.message}</div>
-        </div>`
+      showErr('فشل البحث: ' + (json.message || 'خطأ غير معروف'))
+      document.getElementById('results-wrap').innerHTML = ''
       return
     }
 
-    renderResults(json.data, lat, lng)
+    renderResults(json.data || [])
 
   } catch(e) {
-    document.getElementById('results-wrap').innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">⚠️</div>
-        <div class="empty-title">تعذر الاتصال بالسيرفر</div>
-        <div class="empty-sub">تحقق من اتصالك وحاول مرة أخرى</div>
-      </div>`
+    showErr('تعذر الاتصال بالسيرفر: ' + e.message)
+    document.getElementById('results-wrap').innerHTML = ''
   } finally {
     btn.disabled = false
     btnText.innerHTML = '🛵 عرض'
@@ -372,8 +350,7 @@ async function doSearch() {
 // ============================================================
 // RENDER RESULTS
 // ============================================================
-function renderResults(drivers, branchLat, branchLng) {
-  // stats
+function renderResults(drivers) {
   const statsRow = document.getElementById('stats-row')
   statsRow.style.display = 'flex'
   document.getElementById('stat-count').textContent   = drivers.length
@@ -391,22 +368,20 @@ function renderResults(drivers, branchLat, branchLng) {
   }
 
   const html = drivers.map((d, i) => {
-    const rank = i + 1
-    const rankClass = rank <= 3 ? `rank-${rank}` : ''
-    const rankLabel = rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : rank
-
+    const rank      = i + 1
+    const rankClass = rank === 1 ? '' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other'
+    const rankLabel = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank
     const distClass = d.distance <= 3 ? '' : d.distance <= 7 ? 'far' : 'very-far'
-
     const phonesHtml = (d.phones || []).map(p =>
       `<span class="phone-chip"><a href="tel:${p}">${p}</a></span>`
-    ).join('')
+    ).join('') || '<span style="color:var(--sub);font-size:12px;">لا يوجد رقم</span>'
 
     return `
       <div class="driver-card" style="animation-delay:${i * 0.05}s">
         <div class="driver-rank ${rankClass}">${rankLabel}</div>
         <div class="driver-info">
-          <div class="driver-name">🛵 ${d.name}</div>
-          <div class="driver-phones">${phonesHtml || '<span style="color:var(--sub);font-size:12px;">لا يوجد رقم</span>'}</div>
+          <div class="driver-name">🛵 ${d.name || '—'}</div>
+          <div class="driver-phones">${phonesHtml}</div>
         </div>
         <div class="driver-distance">
           <div class="distance-val ${distClass}">${d.distance}</div>
@@ -430,7 +405,7 @@ function doLogout() {
 // ============================================================
 // INIT
 // ============================================================
-init()
+loadBranches()
 </script>
 </body>
 </html>
