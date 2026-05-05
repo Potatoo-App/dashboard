@@ -1092,17 +1092,47 @@ function setBranchFilter(val) {
 // ============================================================
 // AUTO REFRESH
 // ============================================================
-function startAutoRefresh() {
-  clearInterval(autoTimer)
-  countdown = 30
-  autoTimer = setInterval(() => {
-    countdown--
-    document.getElementById('auto-text').textContent = `تحديث تلقائي خلال ${countdown}ث`
-    if (countdown <= 0) {
-      loadOrders()
-      countdown = 30
+let sseSource = null
+
+function startSSE() {
+  if (sseSource) sseSource.close()
+
+  const branchId = isBranch ? ptUser.branchId : currentBranch
+  let url = `${API}/orders/subscribe`
+  if (!isBranch && branchId) url += `?branchId=${branchId}`
+
+  sseSource = new EventSource(url + (url.includes('?') ? '&' : '?') + `token=${token}`)
+
+  sseSource.onmessage = (e) => {
+    const data = JSON.parse(e.data)
+
+    if (data.type === 'NEW_ORDER') {
+      allOrders.unshift(data.order)
+      document.getElementById('auto-text').textContent = '🆕 طلب جديد!'
+      setTimeout(() => {
+        document.getElementById('auto-text').textContent = 'متصل — تحديث فوري'
+      }, 3000)
     }
-  }, 1000)
+
+    if (data.type === 'ORDER_UPDATED') {
+      const idx = allOrders.findIndex(o => o._id === data.order._id)
+      if (idx !== -1) allOrders[idx] = { ...allOrders[idx], ...data.order }
+    }
+
+    renderOrders(allOrders)
+  }
+
+  sseSource.onopen = () => {
+    document.getElementById('auto-text').textContent = 'متصل — تحديث فوري'
+    document.querySelector('.pulse-dot').style.background = 'var(--green)'
+  }
+
+  sseSource.onerror = () => {
+    document.getElementById('auto-text').textContent = 'انقطع الاتصال — إعادة المحاولة...'
+    document.querySelector('.pulse-dot').style.background = 'var(--red)'
+    sseSource.close()
+    setTimeout(startSSE, 5000)
+  }
 }
 
 // ============================================================
@@ -1133,7 +1163,7 @@ function formatTime(iso) {
 // ============================================================
 loadBranches()
 loadOrders()
-startAutoRefresh()
+startSSE()
 </script>
 </body>
 </html>
