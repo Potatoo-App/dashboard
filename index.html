@@ -487,6 +487,8 @@ const API      = 'https://potatoo-eight.vercel.app/api'
 const token    = localStorage.getItem('pt_token')
 const ptUser   = JSON.parse(localStorage.getItem('pt_user') || '{}')
 const isBranch = ptUser.role === 'branch' || !!ptUser.branchId
+if (ptUser.role === 'admin') window.location.replace('./admin.html')
+
 
 if (!token) window.location.replace('./login.html')
 
