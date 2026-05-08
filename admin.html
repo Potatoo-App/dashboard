@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Potatoo — لوحة الأدمن</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --gold-1: #FFCC44; --gold-2: #E08A00;
+      --bg: #0E0E0E; --card: #1A1A1A; --item: #222222;
+      --border: #2E2E2E; --text: #FFFFFF; --sub: rgba(255,255,255,0.5);
+      --gold-grad: linear-gradient(180deg,#FFCC44,#E08A00);
+      --red: #FF3B30; --green: #30D158; --orange: #FF9500; --blue: #0A84FF;
+      --purple: #BF5AF2;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'Cairo',sans-serif; min-height:100vh; }
+
+    /* ===== TOPBAR ===== */
+    #topbar {
+      position:sticky; top:0; z-index:50;
+      background:rgba(14,14,14,0.95); backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+      padding:0 20px; height:60px;
+      display:flex; align-items:center; gap:12px;
+    }
+    .logo-sm {
+      width:36px; height:36px; border-radius:10px;
+      background:var(--gold-grad);
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; flex-shrink:0;
+    }
+    .topbar-title {
+      font-size:18px; font-weight:900; flex:1;
+      background:var(--gold-grad);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .admin-badge {
+      padding:4px 12px; border-radius:20px;
+      background:rgba(191,90,242,0.15); color:var(--purple);
+      border:1px solid rgba(191,90,242,0.3);
+      font-size:12px; font-weight:900;
+    }
+    .back-btn {
+      padding:6px 14px; border-radius:10px; border:1px solid var(--border);
+      background:transparent; color:var(--sub);
+      font-family:'Cairo',sans-serif; font-size:13px; font-weight:700;
+      cursor:pointer; transition:all 0.2s; text-decoration:none;
+      display:flex; align-items:center; gap:6px;
+    }
+    .back-btn:hover { border-color:var(--gold-1); color:var(--gold-1); }
+    .logout-btn {
+      padding:6px 14px; border-radius:10px; border:1px solid var(--border);
+      background:transparent; color:var(--sub);
+      font-family:'Cairo',sans-serif; font-size:13px; font-weight:700;
+      cursor:pointer; transition:all 0.2s;
+    }
+    .logout-btn:hover { border-color:var(--red); color:var(--red); }
+
+    /* ===== TABS ===== */
+    .tabs-wrap {
+      padding:16px 20px 0;
+      display:flex; gap:8px; border-bottom:1px solid var(--border);
+    }
+    .tab-btn {
+      padding:10px 20px; border-radius:14px 14px 0 0; border:none;
+      font-family:'Cairo',sans-serif; font-size:14px; font-weight:900;
+      cursor:pointer; transition:all 0.2s;
+      background:var(--item); color:var(--sub);
+      border:1px solid var(--border); border-bottom:none;
+      position:relative; bottom:-1px;
+    }
+    .tab-btn.active {
+      background:var(--card); color:var(--text);
+      border-color:var(--border); border-bottom:1px solid var(--card);
+    }
+    .tab-btn.active.tab-sub  { color:var(--gold-1); }
+    .tab-btn.active.tab-menu { color:var(--blue); }
+
+    /* ===== CONTENT ===== */
+    .tab-content { display:none; padding:24px 20px 80px; }
+    .tab-content.active { display:block; }
+
+    /* ===== SECTION TITLE ===== */
+    .section-title {
+      font-size:20px; font-weight:900; margin-bottom:6px;
+    }
+    .section-sub { font-size:13px; color:var(--sub); margin-bottom:24px; }
+
+    /* ===== SUBSCRIPTION TAB ===== */
+    .sub-grid {
+      display:grid; grid-template-columns:1fr; gap:20px; max-width:700px;
+    }
+    @media(min-width:640px) { .sub-grid { grid-template-columns:1fr 1fr; } }
+
+    .sub-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:20px; padding:20px; cursor:pointer;
+      transition:all 0.2s; position:relative; overflow:hidden;
+    }
+    .sub-card::before {
+      content:''; position:absolute; top:0; right:0; left:0; height:3px;
+      background:var(--gold-grad);
+    }
+    .sub-card.plan-2::before { background:linear-gradient(90deg,var(--blue),var(--purple)); }
+    .sub-card:hover { border-color:rgba(255,204,68,0.4); transform:translateY(-2px); }
+    .sub-card.plan-2:hover { border-color:rgba(10,132,255,0.4); }
+    .sub-card.selected { border-color:var(--gold-1); box-shadow:0 0 0 1px var(--gold-1); }
+    .sub-card.plan-2.selected { border-color:var(--blue); box-shadow:0 0 0 1px var(--blue); }
+
+    .plan-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .plan-name { font-size:15px; font-weight:900; }
+    .plan-check {
+      width:22px; height:22px; border-radius:50%;
+      border:2px solid var(--border); display:flex; align-items:center; justify-content:center;
+      font-size:11px; transition:all 0.2s; flex-shrink:0;
+    }
+    .sub-card.selected .plan-check { background:var(--gold-1); border-color:var(--gold-1); color:#000; }
+    .sub-card.plan-2.selected .plan-check { background:var(--blue); border-color:var(--blue); color:#fff; }
+
+    .plan-features { display:flex; flex-direction:column; gap:6px; }
+    .plan-feat {
+      font-size:12px; color:var(--sub); display:flex; align-items:center; gap:6px;
+    }
+    .plan-feat .dot { width:5px; height:5px; border-radius:50%; background:var(--gold-1); flex-shrink:0; }
+    .sub-card.plan-2 .plan-feat .dot { background:var(--blue); }
+
+    /* duration */
+    .duration-wrap { margin-top:20px; max-width:700px; }
+    .duration-label { font-size:13px; font-weight:900; color:var(--sub); margin-bottom:10px; }
+    .duration-grid { display:flex; gap:8px; flex-wrap:wrap; }
+    .dur-btn {
+      padding:8px 18px; border-radius:12px; border:1px solid var(--border);
+      background:var(--item); color:var(--sub);
+      font-family:'Cairo',sans-serif; font-size:13px; font-weight:900;
+      cursor:pointer; transition:all 0.2s;
+    }
+    .dur-btn.selected { background:var(--gold-grad); color:#000; border-color:transparent; }
+
+    /* generate */
+    .generate-wrap { margin-top:24px; max-width:700px; }
+    .generate-btn {
+      width:100%; height:50px; border-radius:16px; border:none;
+      background:var(--gold-grad); color:#000;
+      font-family:'Cairo',sans-serif; font-size:16px; font-weight:900;
+      cursor:pointer; transition:all 0.2s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .generate-btn:hover { opacity:0.9; transform:translateY(-1px); }
+    .generate-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+    /* result */
+    .code-result {
+      margin-top:16px; max-width:700px;
+      background:var(--item); border:1px solid var(--border);
+      border-radius:16px; padding:16px 20px;
+      display:none;
+    }
+    .code-result.show { display:block; animation:fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+    .code-result-label { font-size:12px; color:var(--sub); font-weight:700; margin-bottom:8px; }
+    .code-row { display:flex; align-items:center; gap:10px; }
+    .code-val {
+      flex:1; font-size:22px; font-weight:900; letter-spacing:3px;
+      background:var(--gold-grad);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      font-family:monospace;
+    }
+    .copy-btn {
+      padding:8px 16px; border-radius:10px;
+      border:1px solid rgba(255,204,68,0.3); background:rgba(255,204,68,0.1);
+      color:var(--gold-1); font-family:'Cairo',sans-serif; font-size:12px; font-weight:900;
+      cursor:pointer; transition:all 0.2s; flex-shrink:0;
+    }
+    .copy-btn:hover { background:rgba(255,204,68,0.2); }
+    .copy-btn.copied { border-color:rgba(48,209,88,0.3); background:rgba(48,209,88,0.1); color:var(--green); }
+    .code-meta { font-size:12px; color:var(--sub); margin-top:8px; }
+
+    /* history */
+    .history-wrap { margin-top:32px; max-width:700px; }
+    .history-title { font-size:14px; font-weight:900; color:var(--sub); margin-bottom:12px; }
+    .history-list { display:flex; flex-direction:column; gap:8px; }
+    .history-item {
+      background:var(--item); border:1px solid var(--border);
+      border-radius:12px; padding:12px 16px;
+      display:flex; align-items:center; gap:12px;
+    }
+    .hist-code { font-size:14px; font-weight:900; font-family:monospace; letter-spacing:2px; flex:1; }
+    .hist-meta { font-size:11px; color:var(--sub); text-align:left; }
+    .hist-badge {
+      padding:3px 10px; border-radius:20px; font-size:11px; font-weight:900;
+      flex-shrink:0;
+    }
+    .hist-badge.used { background:rgba(48,209,88,0.1); color:var(--green); border:1px solid rgba(48,209,88,0.2); }
+    .hist-badge.unused { background:rgba(255,204,68,0.1); color:var(--gold-1); border:1px solid rgba(255,204,68,0.2); }
+
+    /* ===== MENU REVIEW TAB ===== */
+    .menu-loader {
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; min-height:40vh; gap:12px;
+    }
+    .ld-spinner {
+      width:36px; height:36px; border:3px solid var(--border);
+      border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .ld-text { font-size:14px; color:var(--sub); font-weight:700; }
+
+    .menu-empty {
+      display:none; flex-direction:column; align-items:center;
+      justify-content:center; min-height:40vh; gap:12px; text-align:center;
+    }
+    .menu-empty.show { display:flex; }
+    .empty-icon { font-size:52px; }
+    .empty-title { font-size:18px; font-weight:900; }
+    .empty-sub { font-size:13px; color:var(--sub); }
+
+    .menus-grid {
+      display:grid; grid-template-columns:1fr; gap:16px;
+    }
+    @media(min-width:768px)  { .menus-grid { grid-template-columns:1fr 1fr; } }
+    @media(min-width:1200px) { .menus-grid { grid-template-columns:1fr 1fr 1fr; } }
+
+    .menu-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:20px; overflow:hidden;
+      border-top:3px solid var(--orange);
+      animation:cardIn 0.3s ease both;
+    }
+    @keyframes cardIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+
+    .menu-card-header {
+      padding:14px 16px 10px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .pending-dot {
+      width:8px; height:8px; border-radius:50%;
+      background:var(--orange); box-shadow:0 0 8px var(--orange);
+      flex-shrink:0;
+    }
+    .menu-branch-name { font-size:14px; font-weight:900; flex:1; }
+    .menu-id-badge {
+      font-size:10px; font-weight:700; padding:3px 8px;
+      border-radius:8px; background:var(--item);
+      color:var(--sub); font-family:monospace; flex-shrink:0;
+    }
+    .menu-time { font-size:11px; color:var(--sub); flex-shrink:0; }
+
+    .menu-preview {
+      padding:0 16px 14px;
+    }
+    .menu-preview-label { font-size:11px; color:var(--sub); font-weight:700; margin-bottom:8px; }
+    .menu-sections { display:flex; flex-wrap:wrap; gap:6px; }
+    .section-tag {
+      padding:4px 10px; border-radius:8px; font-size:11px; font-weight:700;
+      background:rgba(10,132,255,0.1); color:var(--blue);
+      border:1px solid rgba(10,132,255,0.2);
+    }
+    .items-count {
+      font-size:12px; color:var(--sub); margin-top:8px;
+    }
+
+    .menu-divider { height:1px; background:var(--border); margin:0 16px; }
+
+    .menu-actions {
+      padding:12px 16px 16px; display:flex; gap:8px;
+    }
+    .approve-btn {
+      flex:1; height:40px; border-radius:12px; border:none;
+      background:rgba(48,209,88,0.15); color:var(--green);
+      border:1px solid rgba(48,209,88,0.3);
+      font-family:'Cairo',sans-serif; font-size:13px; font-weight:900;
+      cursor:pointer; transition:all 0.2s;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+    }
+    .approve-btn:hover { background:rgba(48,209,88,0.25); }
+    .reject-btn {
+      flex:1; height:40px; border-radius:12px;
+      background:rgba(255,59,48,0.15); color:var(--red);
+      border:1px solid rgba(255,59,48,0.3);
+      font-family:'Cairo',sans-serif; font-size:13px; font-weight:900;
+      cursor:pointer; transition:all 0.2s;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+    }
+    .reject-btn:hover { background:rgba(255,59,48,0.25); }
+    .view-btn {
+      width:40px; height:40px; border-radius:12px;
+      background:rgba(10,132,255,0.1); color:var(--blue);
+      border:1px solid rgba(10,132,255,0.3);
+      font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:all 0.2s; flex-shrink:0;
+    }
+    .view-btn:hover { background:rgba(10,132,255,0.2); }
+
+    /* ===== REJECT MODAL ===== */
+    #reject-modal {
+      display:none; position:fixed; inset:0; z-index:300;
+      background:rgba(0,0,0,0.85); backdrop-filter:blur(8px);
+      align-items:center; justify-content:center; padding:20px;
+    }
+    #reject-modal.open { display:flex; }
+    .reject-box {
+      background:var(--card); border:1px solid rgba(255,59,48,0.3);
+      border-radius:24px; padding:28px 24px; width:100%; max-width:400px;
+    }
+    .reject-title { font-size:17px; font-weight:900; color:var(--red); margin-bottom:6px; }
+    .reject-sub { font-size:13px; color:var(--sub); margin-bottom:16px; }
+    .reject-reason-box {
+      background:rgba(255,59,48,0.08); border:1px solid rgba(255,59,48,0.2);
+      border-radius:12px; padding:14px 16px; margin-bottom:16px;
+      font-size:13px; color:var(--red); font-weight:700; line-height:1.6;
+    }
+    .reject-actions { display:flex; gap:10px; }
+    .reject-confirm {
+      flex:1; height:44px; border-radius:14px; border:none;
+      background:rgba(255,59,48,0.9); color:#fff;
+      font-family:'Cairo',sans-serif; font-size:15px; font-weight:900; cursor:pointer;
+    }
+    .reject-back {
+      height:44px; padding:0 18px; border-radius:14px;
+      border:1px solid var(--border); background:transparent; color:var(--sub);
+      font-family:'Cairo',sans-serif; font-size:14px; font-weight:700; cursor:pointer;
+    }
+
+    /* ===== TOAST ===== */
+    #toast {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+      background:var(--item); border:1px solid var(--border);
+      border-radius:16px; padding:12px 20px;
+      font-size:13px; font-weight:700;
+      display:flex; align-items:center; gap:8px;
+      z-index:400; transition:transform 0.3s ease;
+      backdrop-filter:blur(8px);
+    }
+    #toast.show { transform:translateX(-50%) translateY(0); }
+    #toast.success { border-color:rgba(48,209,88,0.4); color:var(--green); }
+    #toast.error   { border-color:rgba(255,59,48,0.4); color:var(--red); }
+    #toast.info    { border-color:rgba(255,204,68,0.4); color:var(--gold-1); }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="logo-sm">🥔</div>
+  <div class="topbar-title">لوحة الأدمن</div>
+  <span class="admin-badge">👑 Admin</span>
+  <a class="back-btn" href="./index.html">← الطلبات</a>
+  <button class="logout-btn" onclick="doLogout()">خروج</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <button class="tab-btn tab-sub active" onclick="switchTab('sub')">🔑 تجديد الاشتراك</button>
+  <button class="tab-btn tab-menu" onclick="switchTab('menu')">📋 مراجعة المنيوهات</button>
+</div>
+
+<!-- ============================== -->
+<!-- TAB 1: SUBSCRIPTION            -->
+<!-- ============================== -->
+<div class="tab-content active" id="tab-sub">
+  <div class="section-title">تجديد الاشتراك</div>
+  <div class="section-sub">اختار نوع الخطة والمدة وبعدين اعمل generate للكود</div>
+
+  <!-- Plans -->
+  <div class="sub-grid">
+    <div class="sub-card selected" id="plan-1" onclick="selectPlan(1)">
+      <div class="plan-header">
+        <div class="plan-name">🥔 الخطة الأساسية</div>
+        <div class="plan-check">✓</div>
+      </div>
+      <div class="plan-features">
+        <div class="plan-feat"><span class="dot"></span>منيو ويب</div>
+        <div class="plan-feat"><span class="dot"></span>داشبورد التطبيق</div>
+        <div class="plan-feat"><span class="dot"></span>العرض داخل التطبيق</div>
+      </div>
+    </div>
+
+    <div class="sub-card plan-2" id="plan-2" onclick="selectPlan(2)">
+      <div class="plan-header">
+        <div class="plan-name">🚀 الخطة المتقدمة</div>
+        <div class="plan-check"></div>
+      </div>
+      <div class="plan-features">
+        <div class="plan-feat"><span class="dot"></span>منيو ويب</div>
+        <div class="plan-feat"><span class="dot"></span>داشبورد التطبيق</div>
+        <div class="plan-feat"><span class="dot"></span>العرض داخل التطبيق</div>
+        <div class="plan-feat"><span class="dot"></span>داشبورد الأوردرات</div>
+        <div class="plan-feat"><span class="dot"></span>البحث عن طيارين</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Duration -->
+  <div class="duration-wrap">
+    <div class="duration-label">المدة</div>
+    <div class="duration-grid">
+      <button class="dur-btn" onclick="selectDuration(this, 1)">شهر</button>
+      <button class="dur-btn selected" onclick="selectDuration(this, 3)">3 شهور</button>
+      <button class="dur-btn" onclick="selectDuration(this, 6)">6 شهور</button>
+      <button class="dur-btn" onclick="selectDuration(this, 12)">سنة</button>
+    </div>
+  </div>
+
+  <!-- Generate -->
+  <div class="generate-wrap">
+    <button class="generate-btn" id="gen-btn" onclick="generateCode()">
+      <span id="gen-btn-text">⚡ Generate Code</span>
+    </button>
+    <div class="code-result" id="code-result">
+      <div class="code-result-label">الكود الجديد</div>
+      <div class="code-row">
+        <div class="code-val" id="code-val">—</div>
+        <button class="copy-btn" id="copy-btn" onclick="copyCode()">📋 نسخ</button>
+      </div>
+      <div class="code-meta" id="code-meta"></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history-wrap">
+    <div class="history-title">آخر الأكواد المُنشأة</div>
+    <div class="history-list" id="history-list">
+      <div style="font-size:13px; color:var(--sub); text-align:center; padding:16px;">لا يوجد أكواد بعد</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== -->
+<!-- TAB 2: MENU REVIEW             -->
+<!-- ============================== -->
+<div class="tab-content" id="tab-menu">
+  <div class="section-title">مراجعة المنيوهات</div>
+  <div class="section-sub">المنيوهات دي في انتظار موافقتك عشان تتعرض للعملاء</div>
+
+  <div class="menu-loader" id="menu-loader">
+    <div class="ld-spinner"></div>
+    <div class="ld-text">جاري التحميل...</div>
+  </div>
+
+  <div class="menu-empty" id="menu-empty">
+    <div class="empty-icon">✅</div>
+    <div class="empty-title">مفيش منيوهات في الانتظار</div>
+    <div class="empty-sub">كل المنيوهات اتراجعت</div>
+  </div>
+
+  <div class="menus-grid" id="menus-grid" style="display:none;"></div>
+</div>
+
+<!-- REJECT MODAL -->
+<div id="reject-modal">
+  <div class="reject-box">
+    <div class="reject-title">✖ رفض المنيو</div>
+    <div class="reject-sub">هيتبعت للمطعم الرسالة دي:</div>
+    <div class="reject-reason-box">
+      ❌ لم يتم الموافقة على المنيو نظرًا لوجود صور أو مسميات غير لائقة. من فضلك راجع المحتوى وأعد الرفع.
+    </div>
+    <div class="reject-actions">
+      <button class="reject-confirm" onclick="confirmReject()">تأكيد الرفض</button>
+      <button class="reject-back" onclick="closeRejectModal()">رجوع</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+const API   = 'https://potatoo-eight.vercel.app/api'
+const token = localStorage.getItem('pt_token')
+const ptUser = JSON.parse(localStorage.getItem('pt_user') || '{}')
+
+// حماية: لو مش admin → روح للـ login
+if (!token) window.location.replace('./login.html')
+if (ptUser.role !== 'admin') window.location.replace('./index.html')
+
+// ============================================================
+// TABS
+// ============================================================
+let menuLoaded = false
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'))
+  document.getElementById('tab-' + tab).classList.add('active')
+  document.querySelector('.tab-btn.tab-' + tab).classList.add('active')
+
+  if (tab === 'menu' && !menuLoaded) {
+    menuLoaded = true
+    loadPendingMenus()
+  }
+}
+
+// ============================================================
+// SUBSCRIPTION TAB
+// ============================================================
+let selectedPlan     = 1
+let selectedMonths   = 3
+let generatedCode    = null
+const codeHistory    = []
+
+function selectPlan(n) {
+  selectedPlan = n
+  document.getElementById('plan-1').classList.toggle('selected', n === 1)
+  document.getElementById('plan-2').classList.toggle('selected', n === 2)
+  // check marks
+  document.querySelector('#plan-1 .plan-check').textContent = n === 1 ? '✓' : ''
+  document.querySelector('#plan-2 .plan-check').textContent = n === 2 ? '✓' : ''
+  document.getElementById('code-result').classList.remove('show')
+}
+
+function selectDuration(el, months) {
+  selectedMonths = months
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('selected'))
+  el.classList.add('selected')
+  document.getElementById('code-result').classList.remove('show')
+}
+
+function generateCode() {
+  const btn     = document.getElementById('gen-btn')
+  const btnText = document.getElementById('gen-btn-text')
+
+  btn.disabled = true
+  btnText.innerHTML = `<span style="display:inline-block;width:16px;height:16px;border:2px solid #000;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;"></span> جاري الإنشاء...`
+
+  setTimeout(() => {
+    // generate random code
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    let code = ''
+    for (let i = 0; i < 8; i++) {
+      if (i === 4) code += '-'
+      code += chars[Math.floor(Math.random() * chars.length)]
+    }
+
+    generatedCode = code
+
+    const planName  = selectedPlan === 1 ? 'الأساسية' : 'المتقدمة'
+    const durLabel  = selectedMonths === 1 ? 'شهر' : selectedMonths === 12 ? 'سنة' : `${selectedMonths} شهور`
+
+    document.getElementById('code-val').textContent  = code
+    document.getElementById('code-meta').textContent = `الخطة: ${planName} — المدة: ${durLabel} — صالح للاستخدام مرة واحدة`
+
+    const result = document.getElementById('code-result')
+    result.classList.add('show')
+
+    // add to history
+    codeHistory.unshift({ code, plan: planName, dur: durLabel, used: false, time: new Date() })
+    renderHistory()
+
+    btn.disabled = false
+    btnText.textContent = '⚡ Generate Code'
+  }, 800)
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list')
+  if (!codeHistory.length) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--sub);text-align:center;padding:16px;">لا يوجد أكواد بعد</div>'
+    return
+  }
+  list.innerHTML = codeHistory.slice(0, 10).map(h => `
+    <div class="history-item">
+      <div class="hist-code">${h.code}</div>
+      <div class="hist-meta">${h.plan} — ${h.dur}<br/>${formatTime(h.time)}</div>
+      <span class="hist-badge ${h.used ? 'used' : 'unused'}">${h.used ? 'مستخدم' : 'غير مستخدم'}</span>
+    </div>`).join('')
+}
+
+function copyCode() {
+  if (!generatedCode) return
+  navigator.clipboard.writeText(generatedCode).then(() => {
+    const btn = document.getElementById('copy-btn')
+    btn.textContent = '✅ تم النسخ'
+    btn.classList.add('copied')
+    setTimeout(() => { btn.textContent = '📋 نسخ'; btn.classList.remove('copied') }, 2000)
+  })
+}
+
+// ============================================================
+// MENU REVIEW TAB
+// ============================================================
+let pendingMenus   = []
+let rejectTargetId = null
+
+async function loadPendingMenus() {
+  document.getElementById('menu-loader').style.display = 'flex'
+  document.getElementById('menu-empty').classList.remove('show')
+  document.getElementById('menus-grid').style.display = 'none'
+
+  try {
+    // سنستبدل ده لاحقاً بـ API حقيقي
+    // مؤقتاً: بيانات وهمية للتصميم
+    await new Promise(r => setTimeout(r, 900))
+
+    pendingMenus = getMockMenus()
+    renderMenus()
+  } catch(e) {
+    showToast('فشل التحميل', 'error')
+    document.getElementById('menu-loader').style.display = 'none'
+  }
+}
+
+function getMockMenus() {
+  return [
+    {
+      _id: '6631a2b4f1e2c30012abc001',
+      branch: { _id: '001', arabicName: 'الخديوي — فرع المهندسين' },
+      sections: ['وجبات رئيسية','مشروبات','سلطات'],
+      itemsCount: 24,
+      updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      _id: '6631a2b4f1e2c30012abc002',
+      branch: { _id: '002', arabicName: 'حواوشي الملوك — فرع المعادي' },
+      sections: ['حواوشي','أكلات','مشروبات'],
+      itemsCount: 18,
+      updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      _id: '6631a2b4f1e2c30012abc003',
+      branch: { _id: '003', arabicName: 'بيتزا هت — فرع مدينة نصر' },
+      sections: ['بيتزا','باستا','مشروبات','ديسيرت'],
+      itemsCount: 35,
+      updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    },
+  ]
+}
+
+function renderMenus() {
+  document.getElementById('menu-loader').style.display = 'none'
+  const grid = document.getElementById('menus-grid')
+
+  if (!pendingMenus.length) {
+    document.getElementById('menu-empty').classList.add('show')
+    return
+  }
+
+  grid.style.display = 'grid'
+  grid.innerHTML = pendingMenus.map(m => buildMenuCard(m)).join('')
+}
+
+function buildMenuCard(m) {
+  const branchName  = m.branch?.arabicName || m.branch?.englishName || '—'
+  const shortId     = m._id.slice(-8).toUpperCase()
+  const time        = formatTime(m.updatedAt)
+  const sectionsHtml = (m.sections || []).map(s =>
+    `<span class="section-tag">${s}</span>`).join('')
+
+  return `<div class="menu-card" id="menu-card-${m._id}">
+    <div class="menu-card-header">
+      <div class="pending-dot"></div>
+      <div class="menu-branch-name">${branchName}</div>
+      <div class="menu-id-badge">${shortId}</div>
+      <div class="menu-time">${time}</div>
+    </div>
+    <div class="menu-preview">
+      <div class="menu-preview-label">الأقسام</div>
+      <div class="menu-sections">${sectionsHtml}</div>
+      <div class="items-count">📦 ${m.itemsCount} عنصر</div>
+    </div>
+    <div class="menu-divider"></div>
+    <div class="menu-actions">
+      <button class="approve-btn" onclick="approveMenu('${m._id}')">✔ موافقة</button>
+      <button class="reject-btn"  onclick="openRejectModal('${m._id}')">✖ رفض</button>
+      <button class="view-btn"    onclick="viewMenu('${m._id}')" title="عرض المنيو">👁</button>
+    </div>
+  </div>`
+}
+
+async function approveMenu(id) {
+  const card = document.getElementById('menu-card-' + id)
+  if (card) {
+    card.querySelectorAll('button').forEach(b => b.disabled = true)
+    card.style.opacity = '0.6'
+  }
+
+  try {
+    // TODO: استبدل بـ API حقيقي
+    // await fetch(`${API}/admin/menus/${id}/approve`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } })
+    await new Promise(r => setTimeout(r, 600))
+
+    pendingMenus = pendingMenus.filter(m => m._id !== id)
+
+    if (card) {
+      card.style.transition = 'all 0.3s ease'
+      card.style.opacity = '0'
+      card.style.transform = 'scale(0.95)'
+      setTimeout(() => { card.remove(); checkEmpty() }, 300)
+    }
+    showToast('✅ تم الموافقة على المنيو', 'success')
+  } catch(e) {
+    showToast('فشل الموافقة', 'error')
+    if (card) { card.querySelectorAll('button').forEach(b => b.disabled = false); card.style.opacity = '1' }
+  }
+}
+
+function openRejectModal(id) {
+  rejectTargetId = id
+  document.getElementById('reject-modal').classList.add('open')
+}
+
+function closeRejectModal() {
+  rejectTargetId = null
+  document.getElementById('reject-modal').classList.remove('open')
+}
+
+async function confirmReject() {
+  if (!rejectTargetId) return
+  const id   = rejectTargetId
+  const card = document.getElementById('menu-card-' + id)
+
+  closeRejectModal()
+
+  if (card) {
+    card.querySelectorAll('button').forEach(b => b.disabled = true)
+    card.style.opacity = '0.6'
+  }
+
+  try {
+    // TODO: استبدل بـ API حقيقي
+    await new Promise(r => setTimeout(r, 600))
+
+    pendingMenus = pendingMenus.filter(m => m._id !== id)
+
+    if (card) {
+      card.style.transition = 'all 0.3s ease'
+      card.style.opacity = '0'
+      card.style.transform = 'scale(0.95)'
+      setTimeout(() => { card.remove(); checkEmpty() }, 300)
+    }
+    showToast('✖ تم رفض المنيو وإرسال الرسالة', 'info')
+  } catch(e) {
+    showToast('فشل الرفض', 'error')
+    if (card) { card.querySelectorAll('button').forEach(b => b.disabled = false); card.style.opacity = '1' }
+  }
+}
+
+function viewMenu(id) {
+  const m = pendingMenus.find(x => x._id === id)
+  if (!m) return
+  showToast(`👁 ${m.branch?.arabicName}`, 'info')
+  // TODO: افتح صفحة المنيو أو modal تفصيلي
+}
+
+function checkEmpty() {
+  if (!pendingMenus.length) {
+    document.getElementById('menu-empty').classList.add('show')
+    document.getElementById('menus-grid').style.display = 'none'
+  }
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function formatTime(iso) {
+  if (!iso) return ''
+  const d    = new Date(iso)
+  const now  = new Date()
+  const diff = Math.floor((now - d) / 60000)
+  if (diff < 1)    return 'الآن'
+  if (diff < 60)   return `منذ ${diff} دقيقة`
+  if (diff < 1440) return `منذ ${Math.floor(diff/60)} ساعة`
+  return d.toLocaleDateString('ar-EG')
+}
+
+let toastTimer = null
+function showToast(msg, type = 'info') {
+  const toast = document.getElementById('toast')
+  toast.textContent = msg
+  toast.className   = `show ${type}`
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3000)
+}
+
+function doLogout() {
+  localStorage.removeItem('pt_token')
+  localStorage.removeItem('pt_user')
+  window.location.replace('./login.html')
+}
+</script>
+</body>
+</html>
