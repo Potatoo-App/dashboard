@@ -519,42 +519,57 @@ function selectDuration(el, months) {
   document.getElementById('code-result').classList.remove('show')
 }
 
-function generateCode() {
+async function generateCode() {
   const btn     = document.getElementById('gen-btn')
   const btnText = document.getElementById('gen-btn-text')
 
   btn.disabled = true
   btnText.innerHTML = `<span style="display:inline-block;width:16px;height:16px;border:2px solid #000;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;"></span> جاري الإنشاء...`
 
-  setTimeout(() => {
-    // generate random code
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-    let code = ''
-    for (let i = 0; i < 8; i++) {
-      if (i === 4) code += '-'
-      code += chars[Math.floor(Math.random() * chars.length)]
+  try {
+    const planName = selectedPlan === 1 ? 'basic' : 'advanced'
+    
+    const res = await fetch(`${API}/admin/subscription/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        plan: planName,
+        months: selectedMonths
+      })
+    })
+
+    const data = await res.json()
+
+    if (!data.success) {
+      showToast('فشل إنشاء الكود: ' + data.message, 'error')
+      return
     }
 
-    generatedCode = code
+    generatedCode = data.data.code
 
-    const planName  = selectedPlan === 1 ? 'الأساسية' : 'المتقدمة'
+    const planLabel = selectedPlan === 1 ? 'الأساسية' : 'المتقدمة'
     const durLabel  = selectedMonths === 1 ? 'شهر' : selectedMonths === 12 ? 'سنة' : `${selectedMonths} شهور`
 
-    document.getElementById('code-val').textContent  = code
-    document.getElementById('code-meta').textContent = `الخطة: ${planName} — المدة: ${durLabel} — صالح للاستخدام مرة واحدة`
+    document.getElementById('code-val').textContent  = generatedCode
+    document.getElementById('code-meta').textContent = `الخطة: ${planLabel} — المدة: ${durLabel} — صالح للاستخدام مرة واحدة`
 
-    const result = document.getElementById('code-result')
-    result.classList.add('show')
+    document.getElementById('code-result').classList.add('show')
 
-    // add to history
-    codeHistory.unshift({ code, plan: planName, dur: durLabel, used: false, time: new Date() })
+    codeHistory.unshift({ code: generatedCode, plan: planLabel, dur: durLabel, used: false, time: new Date() })
     renderHistory()
 
+    showToast('✅ تم إنشاء الكود وحفظه', 'success')
+
+  } catch(e) {
+    showToast('حدث خطأ: ' + e.message, 'error')
+  } finally {
     btn.disabled = false
     btnText.textContent = '⚡ Generate Code'
-  }, 800)
+  }
 }
-
 function renderHistory() {
   const list = document.getElementById('history-list')
   if (!codeHistory.length) {
