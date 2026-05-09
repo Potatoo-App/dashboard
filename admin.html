@@ -602,15 +602,21 @@ let rejectTargetId = null
 
 async function loadPendingMenus() {
   document.getElementById('menu-loader').style.display = 'flex'
-  document.getElementById('menu-empty').classList.remove('show')
-  document.getElementById('menus-grid').style.display = 'none'
-
+  
   try {
-    // سنستبدل ده لاحقاً بـ API حقيقي
-    // مؤقتاً: بيانات وهمية للتصميم
-    await new Promise(r => setTimeout(r, 900))
-
-    pendingMenus = getMockMenus()
+    const res = await fetch(`${API}/admin/pending-menus`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    
+    pendingMenus = (data.data || []).map(b => ({
+      _id: b._id,
+      branch: { _id: b._id, arabicName: b.arabicName },
+      sections: JSON.parse(b.pendingMenu || '[]').map(s => s.arabicName || s.englishName),
+      itemsCount: JSON.parse(b.pendingMenu || '[]').reduce((acc, s) => acc + (s.items?.length || 0), 0),
+      updatedAt: b.updatedAt || new Date().toISOString()
+    }))
+    
     renderMenus()
   } catch(e) {
     showToast('فشل التحميل', 'error')
@@ -693,9 +699,16 @@ async function approveMenu(id) {
   }
 
   try {
-    // TODO: استبدل بـ API حقيقي
-    // await fetch(`${API}/admin/menus/${id}/approve`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } })
-    await new Promise(r => setTimeout(r, 600))
+    const res = await fetch(`${API}/admin/approve-menu/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (!res.ok) {
+      throw new Error('Approve failed')
+    }
 
     pendingMenus = pendingMenus.filter(m => m._id !== id)
 
@@ -735,8 +748,16 @@ async function confirmReject() {
   }
 
   try {
-    // TODO: استبدل بـ API حقيقي
-    await new Promise(r => setTimeout(r, 600))
+    const res = await fetch(`${API}/admin/reject-menu/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (!res.ok) {
+      throw new Error('Reject failed')
+    }
 
     pendingMenus = pendingMenus.filter(m => m._id !== id)
 
