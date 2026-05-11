@@ -777,8 +777,84 @@ async function confirmReject() {
 function viewMenu(id) {
   const m = pendingMenus.find(x => x._id === id)
   if (!m) return
-  showToast(`👁 ${m.branch?.arabicName}`, 'info')
-  // TODO: افتح صفحة المنيو أو modal تفصيلي
+
+  // جيب الـ raw pendingMenu من الـ API مباشرة
+  fetch(`${API}/admin/pending-menus`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+  .then(r => r.json())
+  .then(data => {
+    const branch = (data.data || []).find(b => b._id === id)
+    if (!branch) return
+
+    let sections = []
+    try { sections = JSON.parse(branch.pendingMenu || '[]') } catch {}
+
+    const branchName = branch.arabicName || branch.englishName || '—'
+
+    const sectionsHtml = sections.map(s => {
+      const sName = s.arabicName || s.englishName || '—'
+      const sImg  = s.image?.url ? `<img src="${s.image.url}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;" />` : ''
+
+      const itemsHtml = (s.items || []).map(item => {
+        const iName = item.arabicName || item.englishName || '—'
+        const iImg  = item.image?.url
+          ? `<img src="${item.image.url}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;" />`
+          : `<div style="width:48px;height:48px;border-radius:10px;background:var(--item);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🍽</div>`
+
+        const priceFields = ['smallPrice','mediumPrice','largePrice','xlPrice','mealPrice','singlePrice','familyPrice','piecePrice','boxPrice','comboPrice','regularPrice','sandwichPrice']
+        const priceLabels = {smallPrice:'S',mediumPrice:'M',largePrice:'L',xlPrice:'XL',mealPrice:'وجبة',singlePrice:'سنجل',familyPrice:'عائلي',piecePrice:'قطعة',boxPrice:'بوكس',comboPrice:'كومبو',regularPrice:'عادي',sandwichPrice:'ساندوتش'}
+        const prices = priceFields
+          .filter(f => item[f] != null)
+          .map(f => `<span style="background:rgba(255,204,68,0.12);color:var(--gold-1);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:900;">${priceLabels[f]}: ${item[f]}</span>`)
+          .join('')
+
+        return `
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);">
+            ${iImg}
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:900;margin-bottom:4px;">${iName}</div>
+              ${item.arabicDescription ? `<div style="font-size:11px;color:var(--sub);margin-bottom:6px;">${item.arabicDescription}</div>` : ''}
+              <div style="display:flex;flex-wrap:wrap;gap:4px;">${prices}</div>
+            </div>
+          </div>`
+      }).join('')
+
+      return `
+        <div style="background:var(--item);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            ${sImg}
+            <div style="font-size:15px;font-weight:900;">${sName}</div>
+            <span style="margin-right:auto;font-size:11px;color:var(--sub);">${(s.items||[]).length} عنصر</span>
+          </div>
+          ${itemsHtml || '<div style="font-size:12px;color:var(--sub);text-align:center;padding:8px;">لا يوجد عناصر</div>'}
+        </div>`
+    }).join('')
+
+    // حط الـ modal في الـ DOM
+    let modal = document.getElementById('view-modal')
+    if (!modal) {
+      modal = document.createElement('div')
+      modal.id = 'view-modal'
+      modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.9);backdrop-filter:blur(8px);overflow-y:auto;padding:20px;'
+      document.body.appendChild(modal)
+    }
+
+    modal.innerHTML = `
+      <div style="max-width:600px;margin:0 auto;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;position:sticky;top:0;background:rgba(14,14,14,0.95);padding:12px 0;backdrop-filter:blur(8px);">
+          <div style="font-size:17px;font-weight:900;flex:1;">👁 ${branchName}</div>
+          <button onclick="document.getElementById('view-modal').style.display='none'"
+            style="padding:8px 16px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--sub);font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
+            ✕ إغلاق
+          </button>
+        </div>
+        ${sectionsHtml || '<div style="text-align:center;color:var(--sub);padding:40px;">لا يوجد محتوى</div>'}
+      </div>`
+
+    modal.style.display = 'block'
+  })
+  .catch(() => showToast('فشل تحميل المنيو', 'error'))
 }
 
 function checkEmpty() {
